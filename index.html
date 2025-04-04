@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ingos OpenBIS Sample Search Example</title>
+<script type="text/javascript" src="http://127.0.0.1:5000/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
+<!-- https://openbis.readthedocs.io/en/20.10.x/software-developer-documentation/apis/java-javascript-v3-api.html#var-bundle
+
+    Import VAR openBIS V3 API Javascript bundle as "openbis".
+    The bundle contains V3 API Javascript facade and all V3 API Javascript classes.
+
+    The facade can be accessed via:
+    - "openbis" name (e.g. var v3 = new openbis.openbis())
+
+    The classes can be accessed via:
+    - simple name (e.g. var space = new openbis.Space()) - works for classes with a unique simple name (see details below)
+    - full name (e.g. var space = new opebis.as.dto.space.Space()) - works for all classes
+
+    Classes with a unique simple name (e.g. Space) can be accessed using both their simple name (e.g. openbis.Space)
+    and their full name (e.g. openbis.as.dto.space.Space).
+    Classes with a non-unique simple name (e.g. ExternalDmsSearchCriteria) can be accessed only using their full name
+    (i.e. as.dto.dataset.search.ExternalDmsSearchCriteria and as.dto.externaldms.search.ExternalDmsSearchCriteria).
+
+    List of classes with duplicated simple names (i.e. accessible only via their full names):
+    - as.dto.dataset.search.ExternalDmsSearchCriteria
+    - as.dto.externaldms.search.ExternalDmsSearchCriteria
+    - as.dto.pat.search.PersonalAccessTokenSessionNameSearchCriteria
+    - as.dto.session.search.PersonalAccessTokenSessionNameSearchCriteria
+
+    Import the bundle as "openbis" (the bundle content is assigned to window.openbis field). 
+    In case window.openbis field is already used to store something different, then please
+    call openbis.noConflict() function right after the VAR bundle is loaded. It will bring back
+    the original value of window.openbis field and return the loaded VAR bundle for it to be
+    assigned to a different field (works similar to jquery.noConflict() function). 
+-->
+<script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/api/v3/openbis.var.js"></script>
+<script>
+// Run this file from a local dev server for testing: 'python -m http.server 5500'
+// need a CORS proxy: https://pypi.org/project/jupyterlite-simple-cors-proxy/
+var openBisUrl = "http://127.0.0.1:5000"; //"https://main.datastore.bam.de";
+// Create an OpenBIS Facade
+var v3 = new openbis.openbis(openBisUrl);
+
+$(document).ready(function() {
+    $("#main").hide();
+    $("#username").focus();
+    $("#server-url").text(openBisUrl)
+    $('#logout-button').click(function() {
+        v3.logout(function(data) {
+            window.location.reload();
+        })
+    });
+    
+    $('#login-form').submit(function() {
+        // alert("username: " + $('#username').val() + " password: " + $('#password').val());
+        //openbisServer.login( $('#username').val(), $('#password').val(), function(data) { enterApp() })
+        // Login and Authenticate
+        v3.login($('#username').val(), $('#password').val()).done(function(sessionToken) {
+            // Use the session token for subsequent API calls
+            // The session token is automatically stored in the v3 object
+            alert("session token: " + sessionToken);
+        });
+/*
+        // Make API Calls
+        v3.listProjects().done(function(response) {
+            if (response.error) {
+                alert("Error: " + response.error);
+            } else {
+                alert("Got " + response.result.length + " project(s)");
+            }
+        });
+        // invoke other API methods, for instance search for spaces
+        v3.searchSpaces(new openbis.SpaceSearchCriteria(), new openbis.SpaceFetchOptions()).done(function(result) {
+
+            alert("Number of spaces: " + result.getObjects().length);
+
+            // logout to release the resources related with the session
+            v3.logout();
+        });
+*/
+    });
+    // openbisServer.ifRestoredSessionActive(function(data) { enterApp() });
+});
+// });
+ 
+</script>
+</head>
+<body>
+<img id="openbis-logo" src="img/keyvisual_datastore_pur_bg_square.png" alt="openBIS" height="100px" style="float: right;"/>
+<div id="login-form-div">
+<h1>openBIS Sample Search Example</h1>
+
+<p>
+This examples searches for all samples that meet certain criteria and shows the results. The implementation makes one call to the server and the result contains metadata for result objects as well as any ancestor objects of the result objects. 
+</p>
+
+<p style="font-weight: bold">Server URL: <span id="server-url"></span>
+</p>
+
+<form id="login-form" action="javascript:">
+<input id="username" type="text"> <input id="password" type="password"> <button id="login-button">Login</button>
+</form>
+</div>
+
+<div id="main">
+
+<div id="button-group">
+    <button id="logout-button">Logout</button>
+</div>
+
+</div>
+
+</body>
+</html>
