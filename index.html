@@ -36,7 +36,7 @@
 <script>
 // Run this file from a local dev server for testing: 'python -m http.server 5500'
 // need a CORS proxy: https://pypi.org/project/jupyterlite-simple-cors-proxy/
-var openBisUrl = "http://127.0.0.1:5000"; //"https://main.datastore.bam.de";
+var openBisUrl = "http://127.0.0.1:5000";
 // Create an OpenBIS Facade
 var v3 = new openbis.openbis(openBisUrl);
 
@@ -49,7 +49,6 @@ $(document).ready(function() {
             window.location.reload();
         })
     });
-    
     $('#login-form').submit(function() {
         // alert("username: " + $('#username').val() + " password: " + $('#password').val());
         //openbisServer.login( $('#username').val(), $('#password').val(), function(data) { enterApp() })
@@ -97,7 +96,9 @@ This examples searches for all samples that meet certain criteria and shows the 
 </p>
 
 <form id="login-form" action="javascript:">
-<input id="username" type="text"> <input id="password" type="password"> <button id="login-button">Login</button>
+<input id="username" type="text">
+<input id="password" type="password">
+<button id="login-button">Login</button>
 </form>
 </div>
 
