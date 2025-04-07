@@ -3,7 +3,7 @@
 Work in progress ;) This shall be, one day: 
 
 - A web interface (or DataStore extension) for batch generation of labels with QR codes for samples
-- Extend QR code generation by additional info & formats (for tiny, normal and big bottles), very related to the solution of Çağtays group: qrcodes.pdf
+- Extend QR code generation by additional info & formats (for tiny, normal and big bottles), very related to the solution of Çağtays group: [qrcodes.pdf](https://bambund.sharepoint.com/:b:/s/DataStoreCommunication-SupportFB9.3/EfBxRNY9YZ5NlFAXkgr0bJUBzU5lTsMjSZL8PoIYKq6HZA?e=wyMQgo)
 - Allow custom label layout, predefined layouts allow for standardization as well 
 - Key features:
     - web interface, accessibility on each PC with DataStore access, no installation of anything
