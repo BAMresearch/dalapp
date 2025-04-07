@@ -1,81 +1,92 @@
-<!DOCTYPE html>
-<html>
-<head>
+<!DOCTYPE html><html><head>
 <title>DataStore Advanced Label App</title>
 <script type="text/javascript" src="http://127.0.0.1:5000/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
-<!-- https://openbis.readthedocs.io/en/20.10.x/software-developer-documentation/apis/java-javascript-v3-api.html#var-bundle
-
-    Import VAR openBIS V3 API Javascript bundle as "openbis".
-    The bundle contains V3 API Javascript facade and all V3 API Javascript classes.
-
-    The facade can be accessed via:
-    - "openbis" name (e.g. var v3 = new openbis.openbis())
-
-    The classes can be accessed via:
-    - simple name (e.g. var space = new openbis.Space()) - works for classes with a unique simple name (see details below)
-    - full name (e.g. var space = new opebis.as.dto.space.Space()) - works for all classes
-
-    Classes with a unique simple name (e.g. Space) can be accessed using both their simple name (e.g. openbis.Space)
-    and their full name (e.g. openbis.as.dto.space.Space).
-    Classes with a non-unique simple name (e.g. ExternalDmsSearchCriteria) can be accessed only using their full name
-    (i.e. as.dto.dataset.search.ExternalDmsSearchCriteria and as.dto.externaldms.search.ExternalDmsSearchCriteria).
-
-    List of classes with duplicated simple names (i.e. accessible only via their full names):
-    - as.dto.dataset.search.ExternalDmsSearchCriteria
-    - as.dto.externaldms.search.ExternalDmsSearchCriteria
-    - as.dto.pat.search.PersonalAccessTokenSessionNameSearchCriteria
-    - as.dto.session.search.PersonalAccessTokenSessionNameSearchCriteria
-
-    Import the bundle as "openbis" (the bundle content is assigned to window.openbis field). 
-    In case window.openbis field is already used to store something different, then please
-    call openbis.noConflict() function right after the VAR bundle is loaded. It will bring back
-    the original value of window.openbis field and return the loaded VAR bundle for it to be
-    assigned to a different field (works similar to jquery.noConflict() function). 
+<!--
+<script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/js/openbis.js"></script>
 -->
-<script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/api/v3/openbis.var.js"></script>
 <script>
 // Run this file from a local dev server for testing: 'python -m http.server 5500'
 // need a CORS proxy: https://pypi.org/project/jupyterlite-simple-cors-proxy/
-var openBisUrl = "http://127.0.0.1:5000";
-// Create an OpenBIS Facade
-var v3 = new openbis.openbis(openBisUrl);
+var baseUrl = "http://127.0.0.1:5000";
+var rpcURL = baseUrl+'/openbis/openbis/rmi-application-server-v3.json';
+// Using the openBIS JSON-RPC API directly
+// https://unlimited.ethz.ch/spaces/openBISDoc2010/pages/53745963/Using+the+openBIS+JSON-RPC+API+directly#UsingtheopenBISJSONRPCAPIdirectly-openBISendpoints
+
+var token = "";
+function rpcQuery(method, params, successHandler, errorHandler = function(){}) {
+    const data = {
+        "method": method,
+        "params": params,
+        "jsonrpc": "2.0", "id": 1
+    };
+    $.post(rpcURL, JSON.stringify(data), function(responseStr) {
+        let response = JSON.parse(responseStr);
+        if (response.result !== null) {
+            successHandler(response.result);
+        } else {
+            console.error('Error:', responseStr);
+            errorHandler(response.result);
+        }
+    });
+}
+function dsLogin() {
+    rpcQuery("login", [ $('#username').val(), $('#password').val() ], function(data){
+        token = data;
+        console.log("Got token: " + token);
+    });
+}
+function dsLogout() {
+    rpcQuery("logout", [ token ], function(data){
+        token = "";
+        console.log("Logged out successfully!");
+    });
+}
+var sampleIds = [ "/IBRESSLE/MY_PROJECT/SAM3", "/IBRESSLE/MY_PROJECT/SAM5" ];
+function getSamples() {
+    var sampleList = [];
+    sampleIds.forEach(function(id) {
+        sampleList.push({
+            "identifier": id,
+            "@type": "as.dto.sample.id.SampleIdentifier"
+        });
+    });
+    fetchOptions = {
+        "properties": {
+            "@type": "as.dto.property.fetchoptions.PropertyFetchOptions"
+        },
+    };
+    // console.log("sampleList:", sampleList);
+    rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
+        console.log("Got data: " + JSON.stringify(data));
+        $("#main").append("<table>");
+        sampleIds.forEach(function(id) {
+            const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
+            console.log(fields);
+            $("#main").append("<tr>");
+            for (const field of fields) {
+                $("#main").append("<td>"+field+"</td>");
+            }
+            $("#main").append("</tr>");
+        });
+        $("#main").append("</table>");
+    });
+}
 
 $(document).ready(function() {
     $("#main").hide();
     $("#username").focus();
-    $("#server-url").text(openBisUrl)
+    $("#server-url").text(baseUrl);
+    $("#server-url").attr("href", baseUrl);
     $('#logout-button').click(function() {
-        v3.logout(function(data) {
-            window.location.reload();
-        })
+        dsLogout();
+        window.location.reload();
     });
     $('#login-form').submit(function() {
-        // alert("username: " + $('#username').val() + " password: " + $('#password').val());
-        //openbisServer.login( $('#username').val(), $('#password').val(), function(data) { enterApp() })
-        // Login and Authenticate
-        v3.login($('#username').val(), $('#password').val()).done(function(sessionToken) {
-            // Use the session token for subsequent API calls
-            // The session token is automatically stored in the v3 object
-            alert("session token: " + sessionToken);
-        });
-/*
-        // Make API Calls
-        v3.listProjects().done(function(response) {
-            if (response.error) {
-                alert("Error: " + response.error);
-            } else {
-                alert("Got " + response.result.length + " project(s)");
-            }
-        });
-        // invoke other API methods, for instance search for spaces
-        v3.searchSpaces(new openbis.SpaceSearchCriteria(), new openbis.SpaceFetchOptions()).done(function(result) {
-
-            alert("Number of spaces: " + result.getObjects().length);
-
-            // logout to release the resources related with the session
-            v3.logout();
-        });
-*/
+        dsLogin();
+        $('#main').show();
+    });
+    $('#query-button').click(function() {
+        getSamples();
     });
     // openbisServer.ifRestoredSessionActive(function(data) { enterApp() });
 });
@@ -92,7 +103,7 @@ $(document).ready(function() {
 This examples searches for all samples that meet certain criteria and shows the results. The implementation makes one call to the server and the result contains metadata for result objects as well as any ancestor objects of the result objects. 
 </p>
 
-<p style="font-weight: bold">Server URL: <span id="server-url"></span>
+<p style="font-weight: bold">Using server: <a id="server-url"></a>
 </p>
 
 <form id="login-form" action="javascript:">
@@ -106,6 +117,7 @@ This examples searches for all samples that meet certain criteria and shows the 
 
 <div id="button-group">
     <button id="logout-button">Logout</button>
+    <button id="query-button">Query</button>
 </div>
 
 </div>
