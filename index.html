@@ -10,6 +10,20 @@
 body { background-color: #f2f2f2; }
 p.error-text { color: red; }
 #button-group { margin: 10px 0; }
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printarea, #printarea * {
+        visibility: visible;
+    }
+    #printarea {
+        /* position of an element relative to its parent */
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+}
 </style>
 <script>
 // Run this file from a local dev server for testing: 'python -m http.server 5500'
@@ -85,7 +99,7 @@ function getSamples() {
     // console.log("sampleList:", sampleList);
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
         console.log("Got data: " + JSON.stringify(data));
-        $("#main table").remove();
+        $("#printarea table").remove();
         var table = "<table>";
         var qrList = [];
         sampleIds.forEach(function(id) {
@@ -101,7 +115,7 @@ function getSamples() {
             table += "</tr>";
         });
         table += "</table>";
-        $("#main").append(table)
+        $("#printarea").append(table)
         // make QR codes
         qrCodes = {};
         qrList.forEach(pair => {
@@ -167,7 +181,7 @@ This examples searches for all samples that meet certain criteria and shows the 
     <button id="logout-button">Logout</button>
     <button id="query-button">Query</button>
 </div>
-
+<div id="printarea"></div>
 </div>
 
 </body>
