@@ -26,16 +26,20 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
     };
     $.post(rpcURL, JSON.stringify(data), function(responseStr) {
         let response = JSON.parse(responseStr);
-        if (typeof response.result === 'string') {
-            successHandler(response.result);
-        } else {
-            var msg = responseStr;
-            if (response.error !== undefined) { msg = response.error.message; }
-            else if (response.result === null ) { msg = "No such user or wrong password!" };
-            console.error('Error:', msg);
-            errorHandler(msg);
+        var errmsg;
+        //console.log("response", responseStr, typeof response.result)
+        if (response.error !== undefined) {
+            errmsg = response.error.message;
+        } else if (response.result === null ) {
+            errmsg = "No such user or wrong password!"
         }
-        // console.log("response", responseStr)
+        //console.log("test:", errmsg)
+        if (errmsg !== undefined) {
+            console.error('Error:', errmsg);
+            errorHandler(errmsg);
+        } else {
+            successHandler(response.result);
+        }
     });
 }
 function dsLogin() {
