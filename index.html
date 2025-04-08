@@ -61,6 +61,7 @@ function dsLogout() {
     });
 }
 // /IBRESSLE/MY_PROJECT/SAM3   /IBRESSLE/MY_PROJECT/SAM5
+// /INSTRUMENTS/INSTRUMENTS_TYPE_X/INS7 /IBRESSLE/MY_PROJECT/SAM6 /IBRESSLE/MY_PROJECT/SAM5 /MATERIALS/PROJECT_WITH_SAMPLES/SAM3
 function getSamples() {
     // get sample ids from input text area
     var sampleIds = $("#inputfield").val();
@@ -82,17 +83,19 @@ function getSamples() {
     // console.log("sampleList:", sampleList);
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
         console.log("Got data: " + JSON.stringify(data));
-        $("#main").append("<table>");
+        $("#main table").remove();
+        var table = "<table>";
         sampleIds.forEach(function(id) {
             const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
             console.log(fields);
-            $("#main").append("<tr>");
+            table += "<tr>";
             for (const field of fields) {
-                $("#main").append("<td>"+field+"</td>");
+                table += "<td>"+field+"</td>";
             }
-            $("#main").append("</tr>");
+            table += "</tr>";
         });
-        $("#main").append("</table>");
+        table += "</table>";
+        $("#main").append(table);
     });
 }
 
