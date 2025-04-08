@@ -60,8 +60,13 @@ function dsLogout() {
         console.log("Logged out successfully!");
     });
 }
-var sampleIds = [ "/IBRESSLE/MY_PROJECT/SAM3", "/IBRESSLE/MY_PROJECT/SAM5" ];
+// /IBRESSLE/MY_PROJECT/SAM3   /IBRESSLE/MY_PROJECT/SAM5
 function getSamples() {
+    // get sample ids from input text area
+    var sampleIds = $("#inputfield").val();
+    sampleIds = sampleIds.trim().split(/\s+/).filter(word => word !== '');
+    console.log("sampleIds:", sampleIds);
+    // prepare query
     var sampleList = [];
     sampleIds.forEach(function(id) {
         sampleList.push({
@@ -135,7 +140,7 @@ This examples searches for all samples that meet certain criteria and shows the 
 </div>
 
 <div id="main">
-
+<textarea id="inputfield" rows="5" cols="50" style="overflow-y: scroll;"></textarea>
 <div id="button-group">
     <button id="logout-button">Logout</button>
     <button id="query-button">Query</button>
