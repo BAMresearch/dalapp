@@ -14,3 +14,7 @@ Work in progress ;) This shall be, one day:
         - Javascript should be suitable for this, as it can be used by any employee in the webbrowser and requires no additional hardware or setup.
         
 Open for collaboration!
+
+## Current State Screenshot
+
+![Current State Screenshot](./img/current_state.png)
