@@ -4,6 +4,11 @@
 <!--
 <script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/js/openbis.js"></script>
 -->
+<style>
+body { background-color: #f2f2f2; }
+.error-text { color: red; }
+#button-group { margin: 10px 0; }
+</style>
 <script>
 // Run this file from a local dev server for testing: 'python -m http.server 5500'
 // need a CORS proxy: https://pypi.org/project/jupyterlite-simple-cors-proxy/
@@ -13,7 +18,7 @@ var rpcURL = baseUrl+'/openbis/openbis/rmi-application-server-v3.json';
 // https://unlimited.ethz.ch/spaces/openBISDoc2010/pages/53745963/Using+the+openBIS+JSON-RPC+API+directly#UsingtheopenBISJSONRPCAPIdirectly-openBISendpoints
 
 var token = "";
-function rpcQuery(method, params, successHandler, errorHandler = function(){}) {
+function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
     const data = {
         "method": method,
         "params": params,
@@ -21,19 +26,29 @@ function rpcQuery(method, params, successHandler, errorHandler = function(){}) {
     };
     $.post(rpcURL, JSON.stringify(data), function(responseStr) {
         let response = JSON.parse(responseStr);
-        if (response.result !== null) {
+        if (typeof response.result === 'string') {
             successHandler(response.result);
         } else {
-            console.error('Error:', responseStr);
-            errorHandler(response.result);
+            var msg = responseStr;
+            if (response.error !== undefined) { msg = response.error.message; }
+            else if (response.result === null ) { msg = "No such user or wrong password!" };
+            console.error('Error:', msg);
+            errorHandler(msg);
         }
+        // console.log("response", responseStr)
     });
 }
 function dsLogin() {
-    rpcQuery("login", [ $('#username').val(), $('#password').val() ], function(data){
-        token = data;
-        console.log("Got token: " + token);
-    });
+    $("#login-form-div span.error-text").remove();
+    rpcQuery("login", [ $('#username').val(), $('#password').val() ],
+        function(data){
+            token = data;
+            console.log("Got token: ", token);
+            $('#main').show();
+        }, function(errmsg){
+            console.log("my error handler!")
+            $("#login-form-div").append("<span class=\"error-text\">Sorry: "+errmsg+"</span>");
+        });
 }
 function dsLogout() {
     rpcQuery("logout", [ token ], function(data){
@@ -83,7 +98,6 @@ $(document).ready(function() {
     });
     $('#login-form').submit(function() {
         dsLogin();
-        $('#main').show();
     });
     $('#query-button').click(function() {
         getSamples();
