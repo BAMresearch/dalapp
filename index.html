@@ -1,6 +1,8 @@
 <!DOCTYPE html><html><head>
 <title>DataStore Advanced Label App</title>
 <script type="text/javascript" src="http://127.0.0.1:5000/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
+<!-- https://github.com/davidshimjs/qrcodejs -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!--
 <script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/js/openbis.js"></script>
 -->
@@ -85,6 +87,7 @@ function getSamples() {
         console.log("Got data: " + JSON.stringify(data));
         $("#main table").remove();
         var table = "<table>";
+        var qrList = [];
         sampleIds.forEach(function(id) {
             const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
             console.log(fields);
@@ -92,10 +95,26 @@ function getSamples() {
             for (const field of fields) {
                 table += "<td>"+field+"</td>";
             }
+            var qrId = "qrcode_"+data[id].code;
+            table += "<td><div id=\""+qrId+"\"\></div></td>";
+            qrList.push([qrId, data[id].permId.permId]);
             table += "</tr>";
         });
         table += "</table>";
-        $("#main").append(table);
+        $("#main").append(table)
+        // make QR codes
+        qrCodes = {};
+        qrList.forEach(pair => {
+            const [qrId, qrData] = pair;
+            qrCodes[qrId] = new QRCode(document.getElementById(qrId), {
+                text: qrData,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
     });
 }
 
