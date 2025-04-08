@@ -1,4 +1,4 @@
-# DataStore Advanced Label App
+# DataStore Advanced Label App (Proof-Of-Concept)
 
 Work in progress ;) This shall be, one day: 
 
