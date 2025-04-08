@@ -6,7 +6,7 @@
 -->
 <style>
 body { background-color: #f2f2f2; }
-.error-text { color: red; }
+p.error-text { color: red; }
 #button-group { margin: 10px 0; }
 </style>
 <script>
@@ -39,15 +39,15 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
     });
 }
 function dsLogin() {
-    $("#login-form-div span.error-text").remove();
+    $("#login-form-div p.error-text").hide();
     rpcQuery("login", [ $('#username').val(), $('#password').val() ],
-        function(data){
+        function(data) {
             token = data;
             console.log("Got token: ", token);
             $('#main').show();
-        }, function(errmsg){
-            console.log("my error handler!")
-            $("#login-form-div").append("<span class=\"error-text\">Sorry: "+errmsg+"</span>");
+        }, function(errmsg) {
+            $("#login-form-div p.error-text").text("Sorry: "+errmsg);
+            $("#login-form-div p.error-text").show();
         });
 }
 function dsLogout() {
@@ -89,15 +89,17 @@ function getSamples() {
 
 $(document).ready(function() {
     $("#main").hide();
+    $("#login-form-div p.error-text").hide();
     $("#username").focus();
     $("#server-url").text(baseUrl);
     $("#server-url").attr("href", baseUrl);
+
+    $('#login-form').submit(function() {
+        dsLogin();
+    });
     $('#logout-button').click(function() {
         dsLogout();
         window.location.reload();
-    });
-    $('#login-form').submit(function() {
-        dsLogin();
     });
     $('#query-button').click(function() {
         getSamples();
@@ -125,6 +127,7 @@ This examples searches for all samples that meet certain criteria and shows the 
 <input id="password" type="password">
 <button id="login-button">Login</button>
 </form>
+<p class="error-text"></p>
 </div>
 
 <div id="main">
