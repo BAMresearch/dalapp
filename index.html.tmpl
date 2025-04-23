@@ -58,7 +58,7 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
         "jsonrpc": "2.0", "id": 1
     };
     $.post(rpcURL, JSON.stringify(data), function(responseStr) {
-        console.log("response: ", responseStr, typeof responseStr);
+        // console.log("response: ", responseStr, typeof responseStr);
         let response = responseStr;
         if (!isObject(response)) {
             response = JSON.parse(responseStr);
@@ -137,12 +137,61 @@ function checkAuth() {
         $('#main').show();
     }
 }
+function pad(number, length = 2) {
+    return number.toString().padStart(length, '0');
+}
+function splitStr(str, sep=/\s+/) {
+    return str.trim().split(sep).filter(word => word !== '');
+}
+function formatDate(milliseconds, format) {
+    const date = new Date((+milliseconds));
+    const map = {
+        'DD': pad(date.getDate()),
+        'D': date.getDate(),
+        'MM': pad(date.getMonth() + 1),
+        'M': date.getMonth() + 1,
+        'YYYY': date.getFullYear(),
+        'YY': date.getFullYear().toString().slice(-2),
+        'HH': pad(date.getHours()),
+        'H': date.getHours(),
+        'mm': pad(date.getMinutes()),
+        'm': date.getMinutes(),
+        'ss': pad(date.getSeconds()),
+        's': date.getSeconds()
+    };
+    return format.replace(/DD|D|MM|M|YYYY|YY|HH|H|mm|m|ss|s/g, matched => map[matched]);
+}
+function formatString(str, map) {
+    return str.replace(/{([^}]+)}/g, (match, index) => {
+        index = splitStr(index, /:/);
+        var value = typeof map[index[0]] !== 'undefined' ? map[index[0]] : match;
+        console.log("index: ", index, "value: ", value);
+        if (index.length > 1) {
+            const fmt = index.slice(1).join(":")
+            value = formatDate(value, fmt)
+            console.log("new value: ", value, "fmt: ", fmt);
+        }
+        return value;
+    });
+}
+const layout = `
+<table>
+<tr><td>{code}</td><td rowspan="4"><div id="{qrId}"\></div></td></tr>
+<tr><td>{$NAME}</td></tr>
+<tr><td>{permId}</td></tr>
+<tr><td>{modificationDate:DD.MM.YYYY HH:mm:ss}</td></tr>
+</table>
+`;
+// const formatted = formatString(layout,
+//         {"$NAME": "Shivang", "age": 22, "modificationDate": "1744646093319"});
+// console.log(formatted);
+
 // /IBRESSLE/MY_PROJECT/SAM3   /IBRESSLE/MY_PROJECT/SAM5
 // /INSTRUMENTS/INSTRUMENTS_TYPE_X/INS7 /IBRESSLE/MY_PROJECT/SAM6 /IBRESSLE/MY_PROJECT/SAM5 /MATERIALS/PROJECT_WITH_SAMPLES/SAM3
 function getSamples() {
     // get sample ids from input text area
     var sampleIds = $("#inputfield").val();
-    sampleIds = sampleIds.trim().split(/\s+/).filter(word => word !== '');
+    sampleIds = splitStr(sampleIds);
     console.log("sampleIds:", sampleIds);
     // prepare query
     var sampleList = [];
@@ -171,14 +220,19 @@ function getSamples() {
                 console.log("skipping");
                 return; // skip this one
             }
-            const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
-            console.log(fields);
+            qrId = "qrcode_"+data[id].code;
+            // join the relevant dicts
+            const formatted = formatString(layout, {
+                ...data[id], ...data[id].properties, ...data[id].permId, ...{"qrId": qrId} });
+            // const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
+            // console.log(fields);
             table += "<tr>";
-            for (const field of fields) {
-                table += "<td>"+field+"</td>";
-            }
-            var qrId = "qrcode_"+data[id].code;
-            table += "<td><div id=\""+qrId+"\"\></div></td>";
+            table += "<td>"+formatted+"</td>";
+            // for (const field of fields) {
+            //     table += "<td>"+field+"</td>";
+            // }
+            // var qrId = "qrcode_"+data[id].code;
+            // table += "<td><div id=\""+qrId+"\"\></div></td>";
             qrList.push([qrId, data[id].permId.permId]);
             table += "</tr>";
         });
