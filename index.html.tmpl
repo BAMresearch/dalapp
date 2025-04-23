@@ -71,17 +71,41 @@ function dsLogin() {
         function(data) {
             token = data;
             console.log("Got token: ", token);
-            $('#main').show();
+            sessionStorage.setItem('dsToken', token);
+            checkAuth();
         }, function(errmsg) {
             $("#login-form-div p.error-text").text("Sorry: "+errmsg);
             $("#login-form-div p.error-text").show();
-        });
+        }
+    );
 }
 function dsLogout() {
+    console.log("dsLogout, token: ", token);
     rpcQuery("logout", [ token ], function(data){
         token = "";
         console.log("Logged out successfully!");
     });
+    console.log("dsLogout, here!");
+    sessionStorage.removeItem('dsToken');
+}
+function checkAuth() {
+    if (token.length <= 0) {
+        // Retrieve the token
+        const oldtoken = sessionStorage.getItem('dsToken') || "";
+        if (oldtoken.length > 0) {
+            token = oldtoken;
+            console.log("Restored token!");
+        } else { // need to login first
+            $("#username").focus();
+            $("#login-form-div").show();
+            $('#main').hide();
+        }
+    }
+    console.log("checkAuth, token: ", token);
+    if (token.length > 0) {// we have a token
+        $("#login-form-div").hide();
+        $('#main').show();
+    }
 }
 // /IBRESSLE/MY_PROJECT/SAM3   /IBRESSLE/MY_PROJECT/SAM5
 // /INSTRUMENTS/INSTRUMENTS_TYPE_X/INS7 /IBRESSLE/MY_PROJECT/SAM6 /IBRESSLE/MY_PROJECT/SAM5 /MATERIALS/PROJECT_WITH_SAMPLES/SAM3
@@ -140,9 +164,6 @@ function getSamples() {
 }
 
 $(document).ready(function() {
-    $("#main").hide();
-    $("#login-form-div p.error-text").hide();
-    $("#username").focus();
     $('#login-form').submit(function() {
         dsLogin();
     });
@@ -153,10 +174,8 @@ $(document).ready(function() {
     $('#query-button').click(function() {
         getSamples();
     });
-    // openbisServer.ifRestoredSessionActive(function(data) { enterApp() });
+    checkAuth();
 });
-// });
- 
 </script>
 </head>
 <body>
