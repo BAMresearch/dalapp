@@ -72,6 +72,16 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
         }
     });
 }
+function getCookieValue(name) {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [cookieName, cookieValue] = cookie.trim().split('=');
+        if (cookieName === name) {
+            return decodeURIComponent(cookieValue);
+        }
+    }
+    return null; // Cookie not found
+}
 function error(msg) {
     $("p.error-text").html(msg);
     $("p.error-text").show();
@@ -101,8 +111,12 @@ function dsLogout() {
 function checkAuth() {
     if (token.length <= 0) {
         // Retrieve the token
-        const oldtoken = sessionStorage.getItem('dsToken') || "";
-        if (oldtoken.length > 0) {
+        var oldtoken = sessionStorage.getItem('dsToken') || "";
+        if (oldtoken.length <= 0) { // try to read from cookies
+            oldtoken = getCookieValue('openbis');
+            console.log("Got cookie: "+oldtoken);
+        }
+        if (oldtoken.length > 0) { // was an existing token found?
             token = oldtoken;
             console.log("Restored token!");
         } else { // need to login first
