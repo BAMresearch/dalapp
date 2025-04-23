@@ -3,7 +3,7 @@
 # allows access to an API running on another domain than the web app working on
 
 from flask import Flask, request, jsonify
-import requests, sys, pprint, json
+import requests, sys, pprint, json, base64
 
 infn = "index.html.tmpl"
 outfn = "index.html"
@@ -17,7 +17,8 @@ def parse_args(config):
             pass
 
     print(f"Using the following config: ")
-    pprint.pprint(config)
+    pprint.pprint({k:v for k,v in config.items()
+                   if k not in ("qrcode","logoBase64")})
     print(f"Run the web server with:\n"
             f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
 
@@ -37,6 +38,10 @@ def readConfig():
     with open(configfn) as fd:
         config = json.load(fd)
         config["proxyURL"] = f"http://{config["proxyAddr"]}:{config["proxyPort"]}"
+    with open("qrcode.min.js") as fd:
+        config["qrcode"] = fd.read()
+    with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
+        config["logoBase64"] = base64.b64encode(fd.read()).decode('utf-8')
     return config
 
 def create_app(config):

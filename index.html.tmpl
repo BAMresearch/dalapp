@@ -2,7 +2,7 @@
 <title>{{siteTitle}} {{appTitle}}</title>
 <script type="text/javascript" src="{{proxyURL}}/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
 <!-- https://github.com/davidshimjs/qrcodejs -->
-<script type="text/javascript" src="/qrcode.min.js"></script>
+<script>{{qrcode}}</script>
 <style>
 html, body { height: 100%; }
 body { background-color: #f2f2f2; }
@@ -198,7 +198,7 @@ $(document).ready(function() {
 <body>
 <div class="container">
 <div id="intro">
-<img src="img/keyvisual_datastore_pur_bg_square.png" alt="DataStore Logo"/>
+<img src="data:image/png;base64,{{logoBase64}}" alt="DataStore Logo"/>
 <h1>{{siteTitle}} {{appTitle}}</h1>
 <p>
 This web interface generates QR labels for samples from the <a href="{{siteURL}}">{{siteTitle}}</a>. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the {{siteTitle}} but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
