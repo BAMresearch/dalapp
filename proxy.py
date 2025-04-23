@@ -3,24 +3,11 @@
 # allows access to an API running on another domain than the web app working on
 
 from flask import Flask, request, jsonify
+from pathlib import Path
 import requests, sys, pprint, json, base64
 
 infn = "index.html.tmpl"
 outfn = "index.html"
-configfn = "config.json"
-
-def parse_args(config):
-    for i, key in enumerate(config.keys()):
-        try:
-            config[key] = sys.argv[i+1]
-        except:
-            pass
-
-    print(f"Using the following config: ")
-    pprint.pprint({k:v for k,v in config.items()
-                   if k not in ("qrcode","logoBase64")})
-    print(f"Run the web server with:\n"
-            f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
 
 # change server address to match the proxy address here
 def update_index(config):
@@ -32,10 +19,16 @@ def update_index(config):
     with open(outfn, 'w') as fd:
         fd.write(html)
 
-def readConfig():
+def readConfig(argv):
+    if not argv or len(argv) < 2:
+        print(f"Please provide a config file path as first argument.")
+        sys.exit(1)
+    if not Path(argv[1]).is_file():
+        print(f"Given config file '{argv[1]}' does not exist! Giving up.")
+        sys.exit(1)
     # config configuration values
     config = {}
-    with open(configfn) as fd:
+    with open(argv[1]) as fd:
         config = json.load(fd)
         config["proxyURL"] = f"{config["proxyProto"]}://{config["proxyAddr"]}:{config["proxyPort"]}"
     with open("qrcode.min.js") as fd:
@@ -46,8 +39,11 @@ def readConfig():
 
 def create_app(config):
     app = Flask(__name__)
-    # Initialize your model or run custom function here
-    parse_args(config)
+    print(f"Using the following config: ")
+    pprint.pprint({k:v for k,v in config.items()
+                   if k not in ("qrcode","logoBase64")})
+    print(f"Run the web server with:\n"
+            f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
     update_index(config)
 
     @app.after_request
@@ -77,7 +73,7 @@ def create_app(config):
     return app
 
 if __name__ == '__main__':
-    config = readConfig()
+    config = readConfig(sys.argv)
     app = create_app(config)
     app.run(debug=True, use_reloader=False,
             host=config["proxyAddr"], port=config["proxyPort"])
