@@ -37,7 +37,7 @@ def readConfig():
     config = {}
     with open(configfn) as fd:
         config = json.load(fd)
-        config["proxyURL"] = f"http://{config["proxyAddr"]}:{config["proxyPort"]}"
+        config["proxyURL"] = f"{config["proxyProto"]}://{config["proxyAddr"]}:{config["proxyPort"]}"
     with open("qrcode.min.js") as fd:
         config["qrcode"] = fd.read()
     with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
