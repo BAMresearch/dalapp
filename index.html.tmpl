@@ -1,13 +1,22 @@
 <!DOCTYPE html><html><head>
-<title>{{siteTitle}} Advanced Label App [Proof-Of-Concept]</title>
+<title>{{siteTitle}} {{appTitle}}</title>
 <script type="text/javascript" src="{{proxyURL}}/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
 <!-- https://github.com/davidshimjs/qrcodejs -->
 <script type="text/javascript" src="/qrcode.min.js"></script>
 <style>
+html, body { height: 100%; }
 body { background-color: #f2f2f2; }
+#intro img { float: right; height: 80px; margin: 10px; };
 p.error-text { color: red; }
 a { text-decoration: none; color: darkblue; }
 #button-group { margin: 10px 0; }
+#footer p { justify-self: center; }
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Full viewport height */
+}
+.spacer { flex-grow: 1; }
 @media print {
     body * {
         visibility: hidden;
@@ -134,9 +143,6 @@ $(document).ready(function() {
     $("#main").hide();
     $("#login-form-div p.error-text").hide();
     $("#username").focus();
-    $("#server-url").text(baseUrl);
-    $("#server-url").attr("href", baseUrl);
-
     $('#login-form').submit(function() {
         dsLogin();
     });
@@ -154,10 +160,10 @@ $(document).ready(function() {
 </script>
 </head>
 <body>
-<img id="openbis-logo" src="img/keyvisual_datastore_pur_bg_square.png" alt="openBIS" height="100px" style="float: right;"/>
-<div id="login-form-div">
-<h1>DataStore Advanced Label App [Proof-Of-Concept]</h1>
-
+<div class="container">
+<div id="intro">
+<img src="img/keyvisual_datastore_pur_bg_square.png" alt="DataStore Logo"/>
+<h1>{{siteTitle}} {{appTitle}}</h1>
 <p>
 This web interface generates QR labels for samples from the <a href="{{siteURL}}">{{siteTitle}}</a>. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the {{siteTitle}} but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
 <ol>
@@ -168,10 +174,8 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
   <li>Print the page: <i>Menu -> Print</i> or by pressing <i>Ctrl-P</i>.</li>
 </ol>
 </p>
-
-<p style="font-weight: bold">Using server: <a id="server-url"></a>
-</p>
-
+</div>
+<div id="login-form-div">
 <form id="login-form" action="javascript:">
 <input id="username" type="text">
 <input id="password" type="password">
@@ -189,5 +193,10 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
 <div id="printarea"></div>
 </div>
 
+<div class="spacer"></div>
+<div id="footer">
+<p>Using server: <a href="{{siteURL}}">{{siteURL}}</a></p>
+</div>
+</div><!-- container -->
 </body>
 </html>
