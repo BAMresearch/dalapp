@@ -48,6 +48,9 @@ var rpcURL = baseUrl+'/openbis/openbis/rmi-application-server-v3.json';
 // https://unlimited.ethz.ch/spaces/openBISDoc2010/pages/53745963/Using+the+openBIS+JSON-RPC+API+directly#UsingtheopenBISJSONRPCAPIdirectly-openBISendpoints
 
 var token = "";
+function isObject(variable) {
+  return typeof variable === 'object' && variable !== null && !Array.isArray(variable);
+}
 function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
     const data = {
         "method": method,
@@ -55,9 +58,12 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
         "jsonrpc": "2.0", "id": 1
     };
     $.post(rpcURL, JSON.stringify(data), function(responseStr) {
-        let response = JSON.parse(responseStr);
+        console.log("response: ", responseStr, typeof responseStr);
+        let response = responseStr;
+        if (!isObject(response)) {
+            response = JSON.parse(responseStr);
+        }
         var errmsg;
-        //console.log("response", responseStr, typeof response.result)
         if (response.error !== undefined) {
             errmsg = response.error.message;
         } else if (response.result === null ) {
