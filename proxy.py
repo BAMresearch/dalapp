@@ -3,16 +3,13 @@
 # allows access to an API running on another domain than the web app working on
 
 from flask import Flask, request, jsonify
-import requests, sys, pprint
+import requests, sys, pprint, json
 
-config = dict( # defaults, order of cmdline arguments
-    hostAddr = "127.0.0.1",
-    hostPort = "5000",
-    targetURL = "https://bam-openbis02.germanywestcentral.cloudapp.azure.com",
-    webPort = "8000",
-)
+infn = "index.html.tmpl"
+outfn = "index.html"
+configfn = "config.json"
 
-def parse_args():
+def parse_args(config):
     for i, key in enumerate(config.keys()):
         try:
             config[key] = sys.argv[i+1]
@@ -22,24 +19,31 @@ def parse_args():
     print(f"Using the following config: ")
     pprint.pprint(config)
     print(f"Run the web server with:\n"
-            f"    python3 -m http.server -b {config["hostAddr"]} {config["webPort"]}\n")
+            f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
 
 # change server address to match the proxy address here
-def update_index():
-    fn = "index.html"
-    with open(fn) as fd:
-        content = fd.read()
-    content = content.replace("127.0.0.1:5000",
-                              f"{config["hostAddr"]}:{config["hostPort"]}")
-    with open(fn, 'w') as fd:
-        fd.write(content)
+def update_index(config):
+    with open(infn) as fd:
+        # read and workaround curly brackets in JS code
+        html = fd.read().replace("{","{{").replace("}","}}")
+        html = html.replace("{{{{","{").replace("}}}}","}")
+    html = html.format(**config)
+    with open(outfn, 'w') as fd:
+        fd.write(html)
 
-def create_app():
+def readConfig():
+    # config configuration values
+    config = {}
+    with open(configfn) as fd:
+        config = json.load(fd)
+        config["proxyURL"] = f"http://{config["proxyAddr"]}:{config["proxyPort"]}"
+    return config
+
+def create_app(config):
     app = Flask(__name__)
-
     # Initialize your model or run custom function here
-    parse_args()
-    update_index()
+    parse_args(config)
+    update_index(config)
 
     @app.after_request
     def after_request(response):
@@ -51,7 +55,7 @@ def create_app():
 
     @app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
     def proxy(path):
-        url = f'{config["targetURL"]}/{path}'  # Replace with your target URL
+        url = f'{config["siteURL"]}/{path}'  # Replace with your target URL
         headers = dict(request.headers)
         if 'Host' in headers:
             del headers['Host']
@@ -61,13 +65,14 @@ def create_app():
             headers=headers,
             data=request.get_data(),
             allow_redirects=True,
-            verify=True) # change this to False for selfsigned certs
+            verify=False) # change this to False for selfsigned certs
         response = requests.request(**requestArgs)
         return response.content, response.status_code
 
     return app
 
 if __name__ == '__main__':
-    app = create_app()
+    config = readConfig()
+    app = create_app(config)
     app.run(debug=True, use_reloader=False,
-            host=config["hostAddr"], port=config["hostPort"])
+            host=config["proxyAddr"], port=config["proxyPort"])

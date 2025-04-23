@@ -1,14 +1,12 @@
 <!DOCTYPE html><html><head>
-<title>DataStore Advanced Label App [Proof-Of-Concept]</title>
-<script type="text/javascript" src="http://127.0.0.1:5000/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
+<title>{{siteTitle}} Advanced Label App [Proof-Of-Concept]</title>
+<script type="text/javascript" src="{{proxyURL}}/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
 <!-- https://github.com/davidshimjs/qrcodejs -->
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!--
-<script type="text/javascript" src="http://127.0.0.1:5000/openbis/resources/js/openbis.js"></script>
--->
+<script type="text/javascript" src="/qrcode.min.js"></script>
 <style>
 body { background-color: #f2f2f2; }
 p.error-text { color: red; }
+a { text-decoration: none; color: darkblue; }
 #button-group { margin: 10px 0; }
 @media print {
     body * {
@@ -28,7 +26,7 @@ p.error-text { color: red; }
 <script>
 // Run this file from a local dev server for testing: 'python -m http.server 5500'
 // need a CORS proxy: https://pypi.org/project/jupyterlite-simple-cors-proxy/
-var baseUrl = "http://127.0.0.1:5000";
+var baseUrl = "{{proxyURL}}";
 var rpcURL = baseUrl+'/openbis/openbis/rmi-application-server-v3.json';
 // Using the openBIS JSON-RPC API directly
 // https://unlimited.ethz.ch/spaces/openBISDoc2010/pages/53745963/Using+the+openBIS+JSON-RPC+API+directly#UsingtheopenBISJSONRPCAPIdirectly-openBISendpoints
@@ -161,9 +159,9 @@ $(document).ready(function() {
 <h1>DataStore Advanced Label App [Proof-Of-Concept]</h1>
 
 <p>
-This web interface generates QR labels for samples from the BAM DataStore. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the BAM DataStore but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
+This web interface generates QR labels for samples from the <a href="{{siteURL}}">{{siteTitle}}</a>. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the {{siteTitle}} but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
 <ol>
-  <li>Log-in with your regular BAM DataStore credentials.</li>
+  <li>Log-in with your regular {{siteTitle}} credentials.</li>
   <li>Paste a list of space-separated identifiers in the text field below, such as
   <pre>/INSTRUMENTS/INSTRUMENTS_TYPE_X/INS7 /USERNAME/MY_PROJECT/SAM6 /MATERIALS/PROJECT_WITH_SAMPLES/SAM3</pre></li>
   <li>Hit <i>Generate</i> to create a set of labels for printing.</li>
