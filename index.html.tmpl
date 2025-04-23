@@ -72,8 +72,12 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
         }
     });
 }
+function error(msg) {
+    $("p.error-text").html(msg);
+    $("p.error-text").show();
+}
 function dsLogin() {
-    $("#login-form-div p.error-text").hide();
+    $("p.error-text").hide();
     rpcQuery("login", [ $('#username').val(), $('#password').val() ],
         function(data) {
             token = data;
@@ -81,8 +85,7 @@ function dsLogin() {
             sessionStorage.setItem('dsToken', token);
             checkAuth();
         }, function(errmsg) {
-            $("#login-form-div p.error-text").text("Sorry: "+errmsg);
-            $("#login-form-div p.error-text").show();
+            error("Sorry: "+errmsg);
         }
     );
 }
@@ -140,7 +143,14 @@ function getSamples() {
         $("#printarea table").remove();
         var table = "<table>";
         var qrList = [];
+        var errmsg = "";
         sampleIds.forEach(function(id) {
+            if (undefined === data[id]) {
+                errmsg += "ID not found: "+id+"<br>\n";
+                error(errmsg);
+                console.log("skipping");
+                return; // skip this one
+            }
             const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
             console.log(fields);
             table += "<tr>";
@@ -153,7 +163,7 @@ function getSamples() {
             table += "</tr>";
         });
         table += "</table>";
-        $("#printarea").append(table)
+        $("#printarea").append(table);
         // make QR codes
         qrCodes = {};
         qrList.forEach(pair => {
@@ -207,8 +217,8 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
 <input id="password" type="password">
 <button id="login-button">Login</button>
 </form>
-<p class="error-text"></p>
 </div>
+<p class="error-text"></p>
 
 <div id="main">
 <textarea id="inputfield"></textarea>
