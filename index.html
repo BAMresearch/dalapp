@@ -161,7 +161,14 @@ $(document).ready(function() {
 <h1>DataStore Advanced Label App [Proof-Of-Concept]</h1>
 
 <p>
-This examples searches for all samples that meet certain criteria and shows the results. The implementation makes one call to the server and the result contains metadata for result objects as well as any ancestor objects of the result objects. 
+This web interface generates QR labels for samples from the BAM DataStore. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the BAM DataStore but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
+<ol>
+  <li>Log-in with your regular BAM DataStore credentials.</li>
+  <li>Paste a list of space-separated identifiers in the text field below, such as
+  <pre>/INSTRUMENTS/INSTRUMENTS_TYPE_X/INS7 /USERNAME/MY_PROJECT/SAM6 /MATERIALS/PROJECT_WITH_SAMPLES/SAM3</pre></li>
+  <li>Hit <i>Generate</i> to create a set of labels for printing.</li>
+  <li>Print the page: <i>Menu -> Print</i> or by pressing <i>Ctrl-P</i>.</li>
+</ol>
 </p>
 
 <p style="font-weight: bold">Using server: <a id="server-url"></a>
