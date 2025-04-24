@@ -50,6 +50,11 @@ var token = "";
 function isObject(variable) {
   return typeof variable === 'object' && variable !== null && !Array.isArray(variable);
 }
+function error(msg) {
+    console.error('Error: '+msg);
+    $("p.error-text").html('Error: '+msg);
+    $("p.error-text").show();
+}
 function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
     const data = {
         "method": method,
@@ -70,7 +75,7 @@ function rpcQuery(method, params, successHandler, errorHandler=()=>{}) {
         }
         //console.log("test:", errmsg)
         if (errmsg !== undefined) {
-            console.error('Error:', errmsg);
+            error(errmsg);
             errorHandler(errmsg);
         } else {
             successHandler(response.result);
@@ -86,10 +91,6 @@ function getCookieValue(name) {
         }
     }
     return null; // Cookie not found
-}
-function error(msg) {
-    $("p.error-text").html(msg);
-    $("p.error-text").show();
 }
 function dsLogin() {
     $("p.error-text").hide();
@@ -264,6 +265,7 @@ $(document).ready(function() {
         window.location.reload();
     });
     $('#query-button').click(function() {
+        $("p.error-text").hide();
         getSamples();
     });
     checkAuth();
