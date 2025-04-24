@@ -191,7 +191,7 @@ function makeOuterTable(samplesRequested, data)
 {
     $("#printarea table").remove();
     console.log(JSON.stringify(data, null, 2));
-    var table = ["<table class=\"outer-table\">"];
+    const $table = $('<table class="outer-table"></table>');
     var qrList = [];
     var errmsg = [];
     samplesRequested.forEach(function(id) {
@@ -207,16 +207,16 @@ function makeOuterTable(samplesRequested, data)
             ...entriesFiltered(data[id].properties), ...entriesFiltered(data[id].identifier),
             ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+data[id].code],
         ]);
+        qrList.push([props.qrId, props.permId]);
         console.log("flattened: " + JSON.stringify(props, null, 2));
         // join the relevant dicts
-        const formatted = formatString(layout, props);
-        table.push("<tr>");
-        table.push("<td>"+formatted+"</td>");
-        qrList.push([props.qrId, props.permId]);
-        table.push("</tr>");
+        const cellHtml = formatString(layout, props);
+        const $row = $('<tr></tr>');
+        const $cell = $('<td></td>').html(cellHtml);
+        $row.append($cell);
+        $table.append($row);
     });
-    table.push("</table>");
-    $("#printarea").append(table.join(""));
+    $("#printarea").append($table);
     // make QR codes
     qrCodes = {};
     qrList.forEach(pair => {
