@@ -4,7 +4,7 @@
 <!-- https://github.com/davidshimjs/qrcodejs -->
 <script>{{qrcode}}</script>
 <style>
-html, body { height: 100%; }
+html, body { height: 100%; margin-top: 0; margin-bottom: 0; }
 body { background-color: #f2f2f2; }
 #intro img { float: right; height: 80px; margin: 10px; }
 #main { display: none; width: 50%; }
@@ -16,8 +16,7 @@ a { text-decoration: none; color: darkblue; }
     display: flex;
     flex-direction: row;
     min-width: 100%;}
-#button-group .spacer { flex-grow: 1; }
-#footer p { justify-self: center; }
+#footer { display: flex; flex-direction: row; font-size: 90%; }
 .container {
   display: flex;
   flex-direction: column;
@@ -307,7 +306,9 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
 
 <div class="spacer"></div>
 <div id="footer">
-<p>Using server: <a href="{{siteURL}}">{{siteURL}}</a></p>
+<div class="spacer"></div>
+<span>Using server: <a href="{{siteURL}}">{{siteURL}}</a></span>
+<div class="spacer"></div>
 </div>
 </div><!-- container -->
 </body>
