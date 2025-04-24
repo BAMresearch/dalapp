@@ -174,7 +174,7 @@ function formatString(str, map) {
         return value;
     });
 }
-const layout = `
+const cellLayout = `
 <table>
 <tr><td>{code}</td><td rowspan="4"><div id="{qrId}"\></div></td></tr>
 <tr><td>{$NAME}</td></tr>
@@ -194,7 +194,7 @@ function makeOuterTable(samplesRequested, data)
     const $table = $('<table class="outer-table"></table>');
     var qrList = [];
     var errmsg = [];
-    samplesRequested.forEach(function(id) {
+    samplesRequested.forEach((id, index) => {
         // console.log(id, JSON.stringify(data[id], null, 2));
         if (undefined === data[id]) {
             errmsg.push("ID not found: "+id);
@@ -205,12 +205,12 @@ function makeOuterTable(samplesRequested, data)
         // filter relevant properties and flatten nested arrays
         props = Object.fromEntries([...entriesFiltered(data[id]),
             ...entriesFiltered(data[id].properties), ...entriesFiltered(data[id].identifier),
-            ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+data[id].code],
+            ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+index],
         ]);
         qrList.push([props.qrId, props.permId]);
         console.log("flattened: " + JSON.stringify(props, null, 2));
         // join the relevant dicts
-        const cellHtml = formatString(layout, props);
+        const cellHtml = formatString(cellLayout, props);
         const $row = $('<tr></tr>');
         const $cell = $('<td></td>').html(cellHtml);
         $row.append($cell);
