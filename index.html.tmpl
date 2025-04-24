@@ -164,11 +164,11 @@ function formatString(str, map) {
     return str.replace(/{([^}]+)}/g, (match, index) => {
         index = splitStr(index, /:/);
         var value = typeof map[index[0]] !== 'undefined' ? map[index[0]] : match;
-        console.log("index: ", index, "value: ", value);
+        // console.log("index: ", index, "value: ", value);
         if (index.length > 1) {
             const fmt = index.slice(1).join(":")
             value = formatDate(value, fmt)
-            console.log("new value: ", value, "fmt: ", fmt);
+            // console.log("new value: ", value, "fmt: ", fmt);
         }
         return value;
     });
