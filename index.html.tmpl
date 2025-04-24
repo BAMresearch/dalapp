@@ -205,34 +205,36 @@ function getSamples() {
             "@type": "as.dto.property.fetchoptions.PropertyFetchOptions"
         },
     };
+    function entriesFiltered(obj) {
+        return Object.entries(obj).filter(([key, value]) =>
+            !key.startsWith('@') && (typeof value !== 'object' || value === null)
+        );
+    }
     // console.log("sampleList:", sampleList);
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
-        console.log("Got data: " + JSON.stringify(data, null, 2));
         $("#printarea table").remove();
         var table = "<table>";
         var qrList = [];
         var errmsg = "";
         sampleIds.forEach(function(id) {
+            // console.log(id, JSON.stringify(data[id], null, 2));
             if (undefined === data[id]) {
                 errmsg += "ID not found: "+id+"<br>\n";
                 error(errmsg);
                 console.log("skipping");
                 return; // skip this one
             }
-            qrId = "qrcode_"+data[id].code;
+            // filter relevant properties and flatten nested arrays
+            props = Object.fromEntries([...entriesFiltered(data[id]),
+                ...entriesFiltered(data[id].properties), ...entriesFiltered(data[id].identifier),
+                ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+data[id].code],
+            ]);
+            console.log("flattened: " + JSON.stringify(props, null, 2));
             // join the relevant dicts
-            const formatted = formatString(layout, {
-                ...data[id], ...data[id].properties, ...data[id].permId, ...{"qrId": qrId} });
-            // const fields = [data[id].code, data[id].properties['$NAME'], data[id].properties.BAM_OE, id, data[id].permId.permId];
-            // console.log(fields);
+            const formatted = formatString(layout, props);
             table += "<tr>";
             table += "<td>"+formatted+"</td>";
-            // for (const field of fields) {
-            //     table += "<td>"+field+"</td>";
-            // }
-            // var qrId = "qrcode_"+data[id].code;
-            // table += "<td><div id=\""+qrId+"\"\></div></td>";
-            qrList.push([qrId, data[id].permId.permId]);
+            qrList.push([props.qrId, props.permId]);
             table += "</tr>";
         });
         table += "</table>";
