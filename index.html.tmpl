@@ -182,7 +182,55 @@ const layout = `
 <tr><td>{modificationDate:DD.MM.YYYY HH:mm:ss}</td></tr>
 </table>
 `;
-
+function entriesFiltered(obj) {
+    return Object.entries(obj).filter(([key, value]) =>
+        !key.startsWith('@') && (typeof value !== 'object' || value === null)
+    );
+}
+function makeOuterTable(samplesRequested, data)
+{
+    $("#printarea table").remove();
+    console.log(JSON.stringify(data, null, 2));
+    var table = ["<table class=\"outer-table\">"];
+    var qrList = [];
+    var errmsg = [];
+    samplesRequested.forEach(function(id) {
+        // console.log(id, JSON.stringify(data[id], null, 2));
+        if (undefined === data[id]) {
+            errmsg.push("ID not found: "+id);
+            error(errmsg.join("<br>\n"));
+            console.log("skipping");
+            return; // skip this one
+        }
+        // filter relevant properties and flatten nested arrays
+        props = Object.fromEntries([...entriesFiltered(data[id]),
+            ...entriesFiltered(data[id].properties), ...entriesFiltered(data[id].identifier),
+            ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+data[id].code],
+        ]);
+        console.log("flattened: " + JSON.stringify(props, null, 2));
+        // join the relevant dicts
+        const formatted = formatString(layout, props);
+        table.push("<tr>");
+        table.push("<td>"+formatted+"</td>");
+        qrList.push([props.qrId, props.permId]);
+        table.push("</tr>");
+    });
+    table.push("</table>");
+    $("#printarea").append(table.join(""));
+    // make QR codes
+    qrCodes = {};
+    qrList.forEach(pair => {
+        const [qrId, qrData] = pair;
+        qrCodes[qrId] = new QRCode(document.getElementById(qrId), {
+            text: qrData,
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    });
+}
 function getSamples() {
     // get sample ids from input text area
     var sampleIds = $("#inputfield").val();
@@ -201,54 +249,10 @@ function getSamples() {
             "@type": "as.dto.property.fetchoptions.PropertyFetchOptions"
         },
     };
-    function entriesFiltered(obj) {
-        return Object.entries(obj).filter(([key, value]) =>
-            !key.startsWith('@') && (typeof value !== 'object' || value === null)
-        );
-    }
     // console.log("sampleList:", sampleList);
-    rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
-        $("#printarea table").remove();
-        var table = "<table>";
-        var qrList = [];
-        var errmsg = "";
-        sampleIds.forEach(function(id) {
-            // console.log(id, JSON.stringify(data[id], null, 2));
-            if (undefined === data[id]) {
-                errmsg += "ID not found: "+id+"<br>\n";
-                error(errmsg);
-                console.log("skipping");
-                return; // skip this one
-            }
-            // filter relevant properties and flatten nested arrays
-            props = Object.fromEntries([...entriesFiltered(data[id]),
-                ...entriesFiltered(data[id].properties), ...entriesFiltered(data[id].identifier),
-                ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+data[id].code],
-            ]);
-            console.log("flattened: " + JSON.stringify(props, null, 2));
-            // join the relevant dicts
-            const formatted = formatString(layout, props);
-            table += "<tr>";
-            table += "<td>"+formatted+"</td>";
-            qrList.push([props.qrId, props.permId]);
-            table += "</tr>";
-        });
-        table += "</table>";
-        $("#printarea").append(table);
-        // make QR codes
-        qrCodes = {};
-        qrList.forEach(pair => {
-            const [qrId, qrData] = pair;
-            qrCodes[qrId] = new QRCode(document.getElementById(qrId), {
-                text: qrData,
-                width: 128,
-                height: 128,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-        });
-    });
+    const makeOuterTableWithSampleIds = makeOuterTable.bind(null, sampleIds);
+    rpcQuery("getSamples", [ token, sampleList, fetchOptions ],
+            makeOuterTableWithSampleIds);
 }
 
 $(document).ready(function() {
