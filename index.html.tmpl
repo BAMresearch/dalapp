@@ -118,7 +118,7 @@ function checkAuth() {
         // Retrieve the token
         var oldtoken = sessionStorage.getItem('dsToken') || "";
         if (oldtoken.length <= 0) { // try to read from cookies
-            oldtoken = getCookieValue('openbis');
+            oldtoken = getCookieValue('openbis') || "";
             console.log("Got cookie: "+oldtoken);
         }
         if (oldtoken.length > 0) { // was an existing token found?
