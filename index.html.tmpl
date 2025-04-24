@@ -24,12 +24,12 @@ a { text-decoration: none; color: darkblue; }
 }
 .spacer { flex-grow: 1; }
 @media print {
+    @page { margin: 0; }
     body * {
         visibility: hidden;
+/*         margin: 1cm; */
     }
-    #printarea, #printarea * {
-        visibility: visible;
-    }
+    #printarea, #printarea * { visibility: visible; }
     #printarea {
         /* position of an element relative to its parent */
         position: absolute;
