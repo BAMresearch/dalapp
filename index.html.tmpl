@@ -207,7 +207,7 @@ function getSamples() {
     };
     // console.log("sampleList:", sampleList);
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data){
-        console.log("Got data: " + JSON.stringify(data));
+        console.log("Got data: " + JSON.stringify(data, null, 2));
         $("#printarea table").remove();
         var table = "<table>";
         var qrList = [];
