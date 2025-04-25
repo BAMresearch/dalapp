@@ -19,6 +19,23 @@ def update_index(config):
     with open(outfn, 'w') as fd:
         fd.write(html)
 
+def gitInfo():
+    from git import Repo
+    repo = Repo('.')  # assumes current directory is inside the git repo
+    # Short commit hash (first 7 characters)
+    lastCommit = repo.head.commit
+    shortHash = lastCommit.hexsha[:7]
+    # Remote origin URL
+    remoteUrl = repo.remotes.origin.url.replace("git@github.com:", "https://github.com/").removesuffix(".git")
+    # Commit date as ISO string
+    commitDate = lastCommit.committed_datetime
+    html = (f"Version <a href=\"{remoteUrl}/commit/{shortHash}\">{shortHash}</a> "
+        f"changed at {commitDate.strftime("%H:%M on %Y-%m-%d")} "
+        f"by {lastCommit.author.name} "
+        f"(<a href=\"mailto:{lastCommit.author.email}\">{lastCommit.author.email}</a>)")
+    print(html, type(html))
+    return html
+
 def readConfig(argv):
     if not argv or len(argv) < 2:
         print(f"Please provide a config file path as first argument.")
@@ -35,6 +52,7 @@ def readConfig(argv):
         config["qrcode"] = fd.read()
     with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
         config["logoBase64"] = base64.b64encode(fd.read()).decode('utf-8')
+    config["gitinfo"] = gitInfo()
     return config
 
 def create_app(config):

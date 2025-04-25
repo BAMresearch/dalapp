@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html><html><head><meta charset="UTF-8">
 <title>{{siteTitle}} {{appTitle}}</title>
 <script type="text/javascript" src="{{proxyURL}}/openbis/webapp/eln-lims/lib/jquery/js/jquery-1.11.3.min.js"></script>
 <!-- https://github.com/davidshimjs/qrcodejs -->
@@ -17,6 +17,7 @@ a { text-decoration: none; color: darkblue; }
     flex-direction: row;
     min-width: 100%;}
 #footer { display: flex; flex-direction: row; font-size: 90%; }
+#footer p { text-align: center; }
 .container {
   display: flex;
   flex-direction: column;
@@ -182,6 +183,7 @@ function formatString(str, map) {
 function showCellBorders() {
     $(".outer-table").css({"border": "2px solid black"});
     $(".outer-table > tbody > tr > td").css({"border": "1px dotted gray"});
+    $(".outer-table table").css({"border": "1px solid black"});
 }
 const cellLayout = `
 <table>
@@ -387,7 +389,9 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
 <div class="spacer"></div>
 <div id="footer">
 <div class="spacer"></div>
-<span>Using server: <a href="{{siteURL}}">{{siteURL}}</a></span>
+<p>{{gitinfo}}<br>
+Using server: <a href="{{siteURL}}">{{siteURL}}</a>
+</p>
 <div class="spacer"></div>
 </div>
 </div><!-- container -->
