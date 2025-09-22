@@ -89,11 +89,35 @@ def create_app(config):
 
     return app
 
+def upload(config):
+    print("Uploading app:")
+    from jupyter_analysis_tools.datastore import DataStore
+    ds = DataStore(config["siteURL"], username=config["uploadUsername"])
+    filename = outfn
+    spaceName = ds.userspace
+    projectName = "NEXT_PROJECT"
+    collectionName = "example_collection"
+    datasetType = "SOURCE_CODE"
+    props = {"$name": config["appTitle"],
+             "$show_in_project_overview": True,
+             "$document": "<p>my <strong>HTML</strong> formatted dummy text</p>"
+             }
+    obj = ds.createObject(projectName, collectionName, space=spaceName,
+                          objType="ENTRY", props=props)
+    obj.save()
+    #print(obj)
+    ds.uploadDataset(obj, datasetType, filename)
+    data = obj.get_datasets(type="SOURCE_CODE")
+    # file path would be f"{ds.url}/datastore_server/{data[0].permId}/original/index.html"
+    # -> but missing session token here, exists in browser only, therefore link to parent:
+    print(f"App was uploaded as {datasetType} dataset of object {obj.identifier}, link:")
+    print(f"{ds.url}/openbis/webapp/eln-lims/?menuUniqueId=%7B%22type%22:%22EXPERIMENT%22,%22id%22:%22{obj.collection.permId}%22%7D&viewName=showViewDataSetPageFromPermId&viewData=%22{data[0].permId}%22")
+
 if __name__ == '__main__':
     config = readConfig(sys.argv)
     update_index(config)
     if "uploadNoProxy" in config and config["uploadNoProxy"]:
-        print("Uploading app.")
+        upload(config)
     else:
         print("Launching proxy app ...")
         app = create_app(config)
