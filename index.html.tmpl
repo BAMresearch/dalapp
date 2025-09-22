@@ -51,6 +51,8 @@ var baseUrl = "{{proxyURL}}";
 var rpcURL = baseUrl+'/openbis/openbis/rmi-application-server-v3.json';
 // Using the openBIS JSON-RPC API directly
 // https://unlimited.ethz.ch/spaces/openBISDoc2010/pages/53745963/Using+the+openBIS+JSON-RPC+API+directly#UsingtheopenBISJSONRPCAPIdirectly-openBISendpoints
+// and:
+// https://openbis.ch/javadoc/20.10.x/javadoc-api-v3/ch/ethz/sis/openbis/generic/asapi/v3/IApplicationServerApi.html
 
 var token = "";
 function isObject(variable) {
@@ -138,7 +140,7 @@ function checkAuth() {
         }
     }
     console.log("checkAuth, token: ", token);
-    if (token.length > 0) {// we have a token
+    if (token.length > 0) { // we have a token
         $("#login-form-div").hide();
         $('#main').show();
     }
@@ -346,6 +348,91 @@ $(document).ready(function() {
         $("p.error-text").hide();
         getSamples();
     });
+    $('#devtest-button').click(function() {
+        const objectType = 'EXPERIMENTAL_STEP';
+        const objectName = 'Label format';
+        fetchOptions = {
+            "@type": "as.dto.global.fetchoptions.GlobalSearchObjectFetchOptions",
+            sample: {
+                "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
+                type: {
+                    "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
+                }
+            },
+            properties: {
+                "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
+            },
+        };
+        searchCriteria = {
+            "@type": "as.dto.global.search.GlobalSearchCriteria",
+            // objectKind: {
+            //     "@type": "as.dto.global.search.GlobalSearchObjectKindCriteria",
+            //     value: "SAMPLE",
+            // },
+            // text: {
+            //     "@type": "as.dto.global.search.GlobalSearchTextCriteria",
+            //     contains: "Label",
+            // },
+        };
+        fetchOptions2 = {
+            "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
+            type: {
+                "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
+            },
+            properties: {
+                "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
+            },
+        };
+        searchCriteria2 = {
+            "@type": "as.dto.sample.search.SampleSearchCriteria",
+            "criteria": [
+                    {
+                    "fieldName": "code",
+                    "fieldType": "ATTRIBUTE",
+                    "fieldValue": {
+                        "value": "EXP",
+                        "@type": "as.dto.common.search.StringStartsWithValue"
+                    },
+                    "useWildcards": false,
+                    "@type": "as.dto.common.search.CodeSearchCriteria"
+                    },
+                    {
+                    "fieldName": "$NAME",
+                    "fieldType": "PROPERTY",
+                    "fieldValue": {
+                        "value": "Label",
+                        "@type": "as.dto.common.search.StringStartsWithValue"
+                    },
+                    "useWildcards": false,
+                    "@type": "as.dto.common.search.StringPropertySearchCriteria"
+                    },
+            ],
+            "relation": "SAMPLE",
+            "operator": "AND",
+            // type: {
+            //     "@type": "as.dto.sample.search.SampleTypeSearchCriteria",
+            //     value: "EXPERIMENTAL_STEP.MEASUREMENT_SESSION",
+            // },
+            // text: {
+            //     "@type": "as.dto.global.search.GlobalSearchTextCriteria",
+            //     contains: "Label",
+            // },
+        };
+        rpcQuery("searchSamples", [ token, searchCriteria2, fetchOptions2 ],
+        function(result) {
+            console.log(`result: '${result}'`);
+            console.dir(result);
+            if (result.objects) {
+                // Process the results
+                result.objects.forEach(object => {
+                    console.dir(obj);
+                    // console.log(`Object ID: ${object.id}, Name: ${object.name}`);
+                });
+            } else {
+                console.error('No results found or error in response:', result);
+            }
+        });
+    });
     checkAuth();
 });
 </script>
@@ -382,6 +469,8 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
     <button id="logout-button" tabindex="3">Logout</button>
     <span class="spacer"></span>
     <button id="query-button" tabindex="2">Generate</button>
+    <span class="spacer"></span>
+    <button id="devtest-button" tabindex="4">DevTest</button>
 </div>
 </div>
 <div id="printarea"></div>
