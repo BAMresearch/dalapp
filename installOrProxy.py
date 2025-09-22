@@ -53,16 +53,15 @@ def readConfig(argv):
     with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
         config["logoBase64"] = base64.b64encode(fd.read()).decode('utf-8')
     config["gitinfo"] = gitInfo()
+    print(f"Using the following config: ")
+    pprint.pprint({k:v for k,v in config.items()
+                   if k not in ("qrcode","logoBase64")})
     return config
 
 def create_app(config):
     app = Flask(__name__)
-    print(f"Using the following config: ")
-    pprint.pprint({k:v for k,v in config.items()
-                   if k not in ("qrcode","logoBase64")})
     print(f"Run the web server with:\n"
             f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
-    update_index(config)
 
     @app.after_request
     def after_request(response):
@@ -92,6 +91,11 @@ def create_app(config):
 
 if __name__ == '__main__':
     config = readConfig(sys.argv)
-    app = create_app(config)
-    app.run(debug=True, use_reloader=False,
-            host=config["proxyAddr"], port=config["proxyPort"])
+    update_index(config)
+    if "uploadNoProxy" in config and config["uploadNoProxy"]:
+        print("Uploading app.")
+    else:
+        print("Launching proxy app ...")
+        app = create_app(config)
+        app.run(debug=True, use_reloader=False,
+                host=config["proxyAddr"], port=config["proxyPort"])

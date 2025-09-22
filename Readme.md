@@ -15,6 +15,20 @@ Work in progress ;) This shall be, one day:
         
 Open for collaboration!
 
+## Usage
+
+In each of the cases documented below, run or isntall the app like this:
+
+    python installOrProxy.py config.json
+
+### A. Install to OpenBIS
+
+This uploads the App (self-contained HTML with Javascript and images embedded) to your OpenBIS instance as configured in `config.json` with `uploadNoProxy: true`.
+
+### B. Host the app on you separate web server
+
+This needs to run the proxy app to allow you to authenticate against the OpenBIS server and use its API. For this, set `uploadNoProxy: false` in `config.json`.
+
 ## Current State Screenshot
 
 ![Current State Screenshot](./img/current_state.png)

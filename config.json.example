@@ -4,5 +4,6 @@
   "proxyPort": "5000",
   "siteURL": "https://your.datastore.example.com",
   "siteTitle": "My DataStore",
-  "webPort": "8000"
+  "webPort": "8000",
+  "uploadNoProxy": false
 }
