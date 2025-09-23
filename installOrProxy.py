@@ -113,7 +113,7 @@ def upload(config):
     datasetType = "SOURCE_CODE"
     props = {"$name": config["appTitle"],
              "$show_in_project_overview": True,
-             "$document": f"Please find the {config["appTitle"]} "
+             "$document": f"Please find the <p><strong>{config["appTitle"]}</strong></p> "
              f"as {datasetType} dataset, attached here."}
     obj = ds.createObject(projectName, collectionName, space=spaceName,
                           objType="ENTRY", props=props)
