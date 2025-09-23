@@ -6,7 +6,8 @@
 <style>
 html, body { height: 100%; margin-top: 0; margin-bottom: 0; }
 body { background-color: #f2f2f2; }
-#intro img { float: right; height: 80px; margin: 10px; }
+#intro #dsLogo { float: right; height: 100px; margin: 10px; }
+#intro #repoQR { float: right; height: 200px; margin: 10px; }
 #main { display: none; width: 50%; }
 #main textarea { overflow-y: scroll; width: 100%; min-height: 6em; }
 p.error-text { color: red; display: none; }
@@ -555,8 +556,9 @@ $(document).ready(function() {
 <body>
 <div class="container">
 <div id="intro">
-<img src="data:image/png;base64,{{logoBase64}}" alt="DataStore Logo"/>
+<img id="dsLogo" src="data:image/png;base64,{{logoBase64}}" alt="DataStore Logo"/>
 <h1>{{siteTitle}} {{appTitle}}</h1>
+<img id="repoQR" src="data:image/png;base64,{{repoQRBase64}}" alt="Repo QR Code"/>
 <p>
 This web interface generates QR labels for samples from the <a href="{{siteURL}}">{{siteTitle}}</a>. The idea is to allow for customized label layouts and printing them by the regular printing dialog of the web-browser. This app could be an extension of the {{siteTitle}} but as long as is runs separately an additional log-in is required since the authentication token can not be reused.
 <ol>

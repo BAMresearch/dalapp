@@ -62,10 +62,12 @@ def readConfig(argv):
         config["qrcode"] = fd.read()
     with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
         config["logoBase64"] = base64.b64encode(fd.read()).decode('utf-8')
+    with open("img/repo_qr.png", "rb") as fd:
+        config["repoQRBase64"] = base64.b64encode(fd.read()).decode('utf-8')
     config["gitinfo"] = gitInfo()
     print(f"Using the following config: ")
     pprint.pprint({k: v for k, v in config.items()
-                   if k not in ("qrcode", "logoBase64")})
+                   if k not in ("qrcode", "logoBase64", "repoQRBase64")})
     return config
 
 
