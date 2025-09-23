@@ -187,14 +187,16 @@ function showCellBorders() {
     $(".outer-table > tbody > tr > td").css({"border": "1px dotted gray"});
     $(".outer-table table").css({"border": "1px solid black"});
 }
-const cellLayout = `
-<table>
-<tr><td>{code}</td><td rowspan="4"><div id="{qrId}"\></div></td></tr>
-<tr><td>{$NAME}</td></tr>
-<tr><td>{permId}</td></tr>
-<tr><td>{modificationDate:DD.MM.YYYY HH:mm:ss}</td></tr>
-</table>
-`;
+cellLayouts = {
+    "default": `
+        <table>
+        <tr><td>{code}</td><td rowspan="4"><div id="{qrId}"\></div></td></tr>
+        <tr><td>{$NAME}</td></tr>
+        <tr><td>{permId}</td></tr>
+        <tr><td>{modificationDate:DD.MM.YYYY HH:mm:ss}</td></tr>
+        </table>`,
+};
+selectedLabel = "default";
 // old default layout for testing
 pageLayouts = {"default": {
     "pageSizeMM": {"width": 210, "height": 297},
@@ -211,7 +213,7 @@ function entriesFiltered(obj) {
         !key.startsWith('@') && (typeof value !== 'object' || value === null)
     );
 }
-function makeCells(index, samplesRequested, data, qrList, errmsg, $tableRow)
+function makeCells(cellLayout, index, samplesRequested, data, qrList, errmsg, $tableRow)
 {
     var cellHtml = ""
     if (samplesRequested.length > index && index >= 0) {
@@ -229,7 +231,7 @@ function makeCells(index, samplesRequested, data, qrList, errmsg, $tableRow)
             ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+index],
         ]);
         qrList.push([props.qrId, props.permId]);
-        //console.log("flattened: " + JSON.stringify(props, null, 2));
+        console.log("flattened: " + JSON.stringify(props, null, 2));
         cellHtml = formatString(cellLayout, props);
     }
     const $cell = $('<td></td>').html(cellHtml);
@@ -240,11 +242,12 @@ function px2mm(px) {
     if (typeof px !== "number" ) px = parseFloat(px);
     return px * 25.4 / 96;
 }
-function makeOuterTable(layout, samplesRequested, pageIdx, data)
+function makeOuterTable(layout, cellLayout, samplesRequested, pageIdx, data)
 {
     //console.log(JSON.stringify(data, null, 2));
     console.log("Using layout:");
     console.log(layout);
+    console.log(cellLayout);
     const $table = $('<table class="outer-table"></table>');
     var qrList = [];
     var errmsg = [];
@@ -254,7 +257,7 @@ function makeOuterTable(layout, samplesRequested, pageIdx, data)
         for (let c = 0; c < layout.grid.columns; c++) {
             const index = (pageIdx*layout.grid.rows*layout.grid.columns
                             + r * layout.grid.columns + c - layout.grid.skip);
-            makeCells(index, samplesRequested, data, qrList, errmsg, $row);
+            makeCells(cellLayout, index, samplesRequested, data, qrList, errmsg, $row);
         }
         $table.append($row);
     }
@@ -310,13 +313,13 @@ function makeOuterTable(layout, samplesRequested, pageIdx, data)
         px2mm($(".outer-table table").css("height")));
     showCellBorders();
 }
-function makeTables(layout, samplesRequested, data)
+function makeTables(layout, cellLayout, samplesRequested, data)
 {
     $("#printarea table").remove();
     const entriesPerPage = layout.grid.columns*layout.grid.rows;
     const pageCount = Math.ceil((samplesRequested.length+layout.grid.skip)/entriesPerPage);
     for (let p = 0; p < pageCount; p++) {
-        makeOuterTable(layout, samplesRequested, p, data);
+        makeOuterTable(layout, cellLayout, samplesRequested, p, data);
     }
 }
 function getSamples() {
@@ -338,7 +341,7 @@ function getSamples() {
         },
     };
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data) {
-        makeTables(pageLayouts[selectedLayout], sampleIds, data);
+        makeTables(pageLayouts[selectedLayout], cellLayouts[selectedLabel], sampleIds, data);
     });
 }
 // Function to assign the value based on dot notation
@@ -365,16 +368,42 @@ function assignValue(destObj, array) {
         current[lastKey] = value; // Assign "297" to pageSizeMM.height
     }
 }
+async function dataFromURL(url) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.text(); // Use response.blob() for binary files
+        //console.log(data); // Log the fetched data
+        // Regular expression to match the error message for any path
+        const errorPattern = /Resource '.*' does not exist\./;
+        // Check if the data matches the error pattern
+        if (errorPattern.test(data)) {
+            return ""; // Return an empty string if the error message is found
+        }
+        return data; // Return the file content
+    } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        throw error; // Rethrow the error for further handling if needed
+    }
+}
 function getLayouts() {
     const objectType = 'EXPERIMENTAL_STEP';
     const objectName = 'Label format';
     fetchOptions = {
         "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
-        type: {
-            "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
-        },
+        // type: {
+        //     "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
+        // },
         properties: {
             "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
+        },
+        // from https://github.com/empa-scientific-it/openbis/blob/f011a84048bd95ee9db6a563a0ca1907c07c4ac3/api-openbis-python3-pybis/src/python/pybis/definitions.py#L416
+        "dataSets": {
+            "@type": "as.dto.dataset.fetchoptions.DataSetFetchOptions",
+            "properties": {"@type": "as.dto.property.fetchoptions.PropertyFetchOptions"},
+            "type": {"@type": "as.dto.dataset.fetchoptions.DataSetTypeFetchOptions"},
         },
     };
     searchCriteria = {
@@ -443,11 +472,28 @@ function getLayouts() {
                     //console.log(layout);
                 });
                 pageLayouts[name] = layout;
+                // pull cell layouts from attached datasets of labels
+                if (!obj.dataSets) { return; }
+                obj.dataSets.forEach(dataset => {
+                    const name = dataset.properties["$NAME"];
+                    const token = sessionStorage.getItem('dsToken') || getCookieValue('openbis');
+                    const datasetURL = `${baseUrl}/datastore_server/${dataset.code}/original/label.html?sessionID=${token}`
+                    console.log(datasetURL);
+                    dataFromURL(datasetURL).then(fileContent => {
+                        if (fileContent.length <= 0) { return }
+                        console.log(name);
+                        cellLayouts[name] = fileContent;
+                        console.log(cellLayouts[name]);
+                        // populating the dropdown has to be done asynchronously as well
+                        $('#label-select').append(new Option(name, name));
+                    });
+                });
             });
         } else {
             console.error('No results found or error in response:', result);
         }
         console.log(pageLayouts)
+        console.log(cellLayouts)
         // Populate the dropdown dynamically
         Object.keys(pageLayouts).forEach(function(layoutName) {
             $('#layout-select').append(new Option(layoutName, layoutName));
@@ -476,6 +522,14 @@ $(document).ready(function() {
         console.log('You selected: ' + selectedLayout);
         if (selectedLayout.length && selectedLayout in pageLayouts) {
             console.log(pageLayouts[selectedLayout]);
+        }
+    });
+    // Event listener for label selection change
+    $('#label-select').change(function() {
+        selectedLabel = $(this).val(); // Get the selected value
+        console.log('You selected: ' + selectedLabel);
+        if (selectedLabel.length && selectedLabel in cellLayouts) {
+            console.log(cellLayouts[selectedLabel]);
         }
     });
     checkAuth();
@@ -523,6 +577,11 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
     Pick a Layout:
     <select id="layout-select">
         <option value="">--Select a layout--</option>
+    </select>
+    <span class="spacer"></span>
+    Pick a Label:
+    <select id="label-select">
+        <option value="">--Select a Label--</option>
     </select>
     <span class="spacer"></span>
     <button id="query-button" tabindex="2">Generate</button>
