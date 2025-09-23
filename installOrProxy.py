@@ -4,20 +4,27 @@
 
 from flask import Flask, request, jsonify
 from pathlib import Path
-import requests, sys, pprint, json, base64
+import requests
+import sys
+import pprint
+import json
+import base64
 
 infn = "index.html.tmpl"
 outfn = "index.html"
 
 # change server address to match the proxy address here
+
+
 def update_index(config):
     with open(infn) as fd:
         # read and workaround curly brackets in JS code
-        html = fd.read().replace("{","{{").replace("}","}}")
-        html = html.replace("{{{{","{").replace("}}}}","}")
+        html = fd.read().replace("{", "{{").replace("}", "}}")
+        html = html.replace("{{{{", "{").replace("}}}}", "}")
     html = html.format(**config)
     with open(outfn, 'w') as fd:
         fd.write(html)
+
 
 def gitInfo():
     from git import Repo
@@ -26,15 +33,17 @@ def gitInfo():
     lastCommit = repo.head.commit
     shortHash = lastCommit.hexsha[:7]
     # Remote origin URL
-    remoteUrl = repo.remotes.origin.url.replace("git@github.com:", "https://github.com/").removesuffix(".git")
+    remoteUrl = repo.remotes.origin.url.replace(
+        "git@github.com:", "https://github.com/").removesuffix(".git")
     # Commit date as ISO string
     commitDate = lastCommit.committed_datetime
     html = (f"Version <a href=\"{remoteUrl}/commit/{shortHash}\">{shortHash}</a> "
-        f"changed at {commitDate.strftime("%H:%M on %Y-%m-%d")} "
-        f"by {lastCommit.author.name} "
-        f"(<a href=\"mailto:{lastCommit.author.email}\">{lastCommit.author.email}</a>)")
+            f"changed at {commitDate.strftime("%H:%M on %Y-%m-%d")} "
+            f"by {lastCommit.author.name} "
+            f"(<a href=\"mailto:{lastCommit.author.email}\">{lastCommit.author.email}</a>)")
     print(html, type(html))
     return html
+
 
 def readConfig(argv):
     if not argv or len(argv) < 2:
@@ -47,28 +56,31 @@ def readConfig(argv):
     config = {}
     with open(argv[1]) as fd:
         config = json.load(fd)
-        config["proxyURL"] = f"{config["proxyProto"]}://{config["proxyAddr"]}:{config["proxyPort"]}"
+        config["proxyURL"] = f"{config["proxyProto"]
+                                }://{config["proxyAddr"]}:{config["proxyPort"]}"
     with open("qrcode.min.js") as fd:
         config["qrcode"] = fd.read()
     with open("img/keyvisual_datastore_pur_bg_square.png", "rb") as fd:
         config["logoBase64"] = base64.b64encode(fd.read()).decode('utf-8')
     config["gitinfo"] = gitInfo()
     print(f"Using the following config: ")
-    pprint.pprint({k:v for k,v in config.items()
-                   if k not in ("qrcode","logoBase64")})
+    pprint.pprint({k: v for k, v in config.items()
+                   if k not in ("qrcode", "logoBase64")})
     return config
+
 
 def create_app(config):
     app = Flask(__name__)
     print(f"Run the web server with:\n"
-            f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
+          f"    python3 -m http.server -b {config["proxyAddr"]} {config["webPort"]}\n")
 
     @app.after_request
     def after_request(response):
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers',
                              'Content-Type,Authorization,append,delete,entries,foreach,get,has,keys,set,values')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Methods',
+                             'GET,PUT,POST,DELETE,OPTIONS')
         return response
 
     @app.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
@@ -83,11 +95,12 @@ def create_app(config):
             headers=headers,
             data=request.get_data(),
             allow_redirects=True,
-            verify=False) # change this to False for selfsigned certs
+            verify=False)  # change this to False for selfsigned certs
         response = requests.request(**requestArgs)
         return response.content, response.status_code
 
     return app
+
 
 def upload(config):
     print("Uploading app:")
@@ -100,18 +113,21 @@ def upload(config):
     datasetType = "SOURCE_CODE"
     props = {"$name": config["appTitle"],
              "$show_in_project_overview": True,
-             "$document": "<p>my <strong>HTML</strong> formatted dummy text</p>"
-             }
+             "$document": f"Please find the {config["appTitle"]} "
+             f"as {datasetType} dataset, attached here."}
     obj = ds.createObject(projectName, collectionName, space=spaceName,
                           objType="ENTRY", props=props)
     obj.save()
-    #print(obj)
+    # print(obj)
     ds.uploadDataset(obj, datasetType, filename)
     data = obj.get_datasets(type="SOURCE_CODE")
     # file path would be f"{ds.url}/datastore_server/{data[0].permId}/original/index.html"
     # -> but missing session token here, exists in browser only, therefore link to parent:
-    print(f"App was uploaded as {datasetType} dataset of object {obj.identifier}, link:")
-    print(f"{ds.url}/openbis/webapp/eln-lims/?menuUniqueId=%7B%22type%22:%22EXPERIMENT%22,%22id%22:%22{obj.collection.permId}%22%7D&viewName=showViewDataSetPageFromPermId&viewData=%22{data[0].permId}%22")
+    print(f"App was uploaded as {datasetType} dataset of object {
+          obj.identifier}, link:")
+    print(f"{ds.url}/openbis/webapp/eln-lims/?menuUniqueId=%7B%22type%22:%22EXPERIMENT%22,%22id%22:%22{
+          obj.collection.permId}%22%7D&viewName=showViewDataSetPageFromPermId&viewData=%22{data[0].permId}%22")
+
 
 if __name__ == '__main__':
     config = readConfig(sys.argv)
