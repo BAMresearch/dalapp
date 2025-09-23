@@ -195,11 +195,15 @@ const cellLayout = `
 <tr><td>{modificationDate:DD.MM.YYYY HH:mm:ss}</td></tr>
 </table>
 `;
-pageSizeMM = {"width": 210, "height": 297}
-labelSizeMM = {"width": 45.72, "height": 21.16,
-               "spacingV": 0, "spacingH": 2.54,
-               "posTop": 21.54, "posLeft": 9.75}
-grid = {"columns": 4, "rows": 12, "skip": 3}
+// old default layout for testing
+pageLayouts = {"default": {
+    "pageSizeMM": {"width": 210, "height": 297},
+    "labelSizeMM": {"width": 45.72, "height": 21.16,
+                    "spacingV": 0, "spacingH": 2.54,
+                    "posTop": 21.54, "posLeft": 9.75},
+    "grid": {"columns": 4, "rows": 12, "skip": 3},
+},}; // no double curly, makes problems with format() in Python
+selectedLayout = "default"; // key pointing into pageLayouts
 function resize(qrIds) {
 }
 function entriesFiltered(obj) {
@@ -225,7 +229,7 @@ function makeCells(index, samplesRequested, data, qrList, errmsg, $tableRow)
             ...entriesFiltered(data[id].permId), ["qrId", "qrcode_"+index],
         ]);
         qrList.push([props.qrId, props.permId]);
-        console.log("flattened: " + JSON.stringify(props, null, 2));
+        //console.log("flattened: " + JSON.stringify(props, null, 2));
         cellHtml = formatString(cellLayout, props);
     }
     const $cell = $('<td></td>').html(cellHtml);
@@ -236,18 +240,20 @@ function px2mm(px) {
     if (typeof px !== "number" ) px = parseFloat(px);
     return px * 25.4 / 96;
 }
-function makeOuterTable(samplesRequested, pageIdx, data)
+function makeOuterTable(layout, samplesRequested, pageIdx, data)
 {
-    console.log(JSON.stringify(data, null, 2));
+    //console.log(JSON.stringify(data, null, 2));
+    console.log("Using layout:");
+    console.log(layout);
     const $table = $('<table class="outer-table"></table>');
     var qrList = [];
     var errmsg = [];
     // generate a grid/table of labels
-    for (let r = 0; r < grid.rows; r++) {
+    for (let r = 0; r < layout.grid.rows; r++) {
         const $row = $('<tr></tr>');
-        for (let c = 0; c < grid.columns; c++) {
-            const index = (pageIdx*grid.rows*grid.columns
-                            + r * grid.columns + c - grid.skip);
+        for (let c = 0; c < layout.grid.columns; c++) {
+            const index = (pageIdx*layout.grid.rows*layout.grid.columns
+                            + r * layout.grid.columns + c - layout.grid.skip);
             makeCells(index, samplesRequested, data, qrList, errmsg, $row);
         }
         $table.append($row);
@@ -272,30 +278,30 @@ function makeOuterTable(samplesRequested, pageIdx, data)
         $("img", "#"+id).css("max-height", "100%").css("max-width", "100%");
     });
     $(".outer-table > tbody > tr > td").css({
-        "height": mm(labelSizeMM.height),
-        "width": mm(labelSizeMM.width),
-        "padding-left": mm(labelSizeMM.spacingH/2),
-        "padding-right": mm(labelSizeMM.spacingH/2)});
-    const layoutWidthMM = grid.columns*(labelSizeMM.width+labelSizeMM.spacingH)-labelSizeMM.spacingH;
-    const tablePaddingWidthMM = (pageSizeMM.width - layoutWidthMM);
-    console.log("page width (mm)", pageSizeMM.width,
+        "height": mm(layout.labelSizeMM.height),
+        "width": mm(layout.labelSizeMM.width),
+        "padding-left": mm(layout.labelSizeMM.spacingH/2),
+        "padding-right": mm(layout.labelSizeMM.spacingH/2)});
+    const layoutWidthMM = layout.grid.columns*(layout.labelSizeMM.width+layout.labelSizeMM.spacingH)-layout.labelSizeMM.spacingH;
+    const tablePaddingWidthMM = (layout.pageSizeMM.width - layoutWidthMM);
+    console.log("page width (mm)", layout.pageSizeMM.width,
                 "layout with (mm):", layoutWidthMM,
                 "delta:", tablePaddingWidthMM)
-    $table.css({"padding-left": mm(labelSizeMM.posLeft),
-                "padding-right": mm(tablePaddingWidthMM-labelSizeMM.posLeft)});
-    const layoutHeightMM = grid.rows*(labelSizeMM.height+labelSizeMM.spacingV)-labelSizeMM.spacingV;
-    const tablePaddingHeightMM = (pageSizeMM.height - layoutHeightMM);
-    console.log("page height (mm)", pageSizeMM.height,
+    $table.css({"padding-left": mm(layout.labelSizeMM.posLeft),
+                "padding-right": mm(tablePaddingWidthMM-layout.labelSizeMM.posLeft)});
+    const layoutHeightMM = layout.grid.rows*(layout.labelSizeMM.height+layout.labelSizeMM.spacingV)-layout.labelSizeMM.spacingV;
+    const tablePaddingHeightMM = (layout.pageSizeMM.height - layoutHeightMM);
+    console.log("page height (mm)", layout.pageSizeMM.height,
                 "layout height (mm):", layoutHeightMM,
                 "delta:", tablePaddingHeightMM)
-    $table.css({"padding-top": mm(labelSizeMM.posTop)}); // don't set bottom to avoid page breaks
+    $table.css({"padding-top": mm(layout.labelSizeMM.posTop)}); // don't set bottom to avoid page breaks
                 //"padding-bottom": mm(tablePaddingHeightMM-labelSizeMM.posTop)
     // adjust font size to reach desired label height
     var fontsizeCurrent = $("#printarea").css('font-size');
     const labelHeightMM = px2mm($(".outer-table table").css("height"));
     console.log("current label height (mm):", labelHeightMM);
-    if (labelHeightMM > labelSizeMM.height) {
-        const fontRatio = 100*labelSizeMM.height/labelHeightMM;
+    if (labelHeightMM > layout.labelSizeMM.height) {
+        const fontRatio = 100*layout.labelSizeMM.height/labelHeightMM;
         console.log("Adjusting label font size by", fontRatio, "%");
         $table.css("font-size", fontRatio+"%")
     }
@@ -304,13 +310,13 @@ function makeOuterTable(samplesRequested, pageIdx, data)
         px2mm($(".outer-table table").css("height")));
     showCellBorders();
 }
-function makeTables(samplesRequested, data)
+function makeTables(layout, samplesRequested, data)
 {
     $("#printarea table").remove();
-    const entriesPerPage = grid.columns*grid.rows;
-    const pageCount = Math.ceil((samplesRequested.length+grid.skip)/entriesPerPage);
+    const entriesPerPage = layout.grid.columns*layout.grid.rows;
+    const pageCount = Math.ceil((samplesRequested.length+layout.grid.skip)/entriesPerPage);
     for (let p = 0; p < pageCount; p++) {
-        makeOuterTable(samplesRequested, p, data);
+        makeOuterTable(layout, samplesRequested, p, data);
     }
 }
 function getSamples() {
@@ -332,7 +338,120 @@ function getSamples() {
         },
     };
     rpcQuery("getSamples", [ token, sampleList, fetchOptions ], function(data) {
-        makeTables(sampleIds, data);
+        makeTables(pageLayouts[selectedLayout], sampleIds, data);
+    });
+}
+// Function to assign the value based on dot notation
+function assignValue(destObj, array) {
+    const variablePath = array[0]; // "pageSizeMM.height"
+    value = array[1]; // "297"
+    if (typeof value !== "number" ) value = parseFloat(value);
+
+    // Split the variable path into parts
+    const keys = variablePath.split('.');
+
+    // Traverse the object to assign the value
+    let current = destObj;
+    for (let i = 0; i < keys.length - 1; i++) {
+        const key = keys[i];
+        if (!current[key]) {
+            current[key] = {}; // Create the nested object if it doesn't exist
+        }
+        current = current[key]; // Move deeper into the object
+    }
+    const lastKey = keys[keys.length - 1];
+    // Assign the value to the last key
+    if (lastKey && lastKey.length > 0) {
+        current[lastKey] = value; // Assign "297" to pageSizeMM.height
+    }
+}
+function getLayouts() {
+    const objectType = 'EXPERIMENTAL_STEP';
+    const objectName = 'Label format';
+    fetchOptions = {
+        "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
+        type: {
+            "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
+        },
+        properties: {
+            "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
+        },
+    };
+    searchCriteria = {
+        "@type": "as.dto.sample.search.SampleSearchCriteria",
+        "criteria": [
+                {
+                "fieldName": "code",
+                "fieldType": "ATTRIBUTE",
+                "fieldValue": {
+                    "value": "EXP",
+                    "@type": "as.dto.common.search.StringStartsWithValue"
+                },
+                "useWildcards": false,
+                "@type": "as.dto.common.search.CodeSearchCriteria"
+                },
+                {
+                "fieldName": "$NAME",
+                "fieldType": "PROPERTY",
+                "fieldValue": {
+                    "value": "Label",
+                    "@type": "as.dto.common.search.StringStartsWithValue"
+                },
+                "useWildcards": false,
+                "@type": "as.dto.common.search.StringPropertySearchCriteria"
+                },
+        ],
+        "relation": "SAMPLE",
+        "operator": "AND",
+        // type: {
+        //     "@type": "as.dto.sample.search.SampleTypeSearchCriteria",
+        //     value: "EXPERIMENTAL_STEP.MEASUREMENT_SESSION",
+        // },
+        // text: {
+        //     "@type": "as.dto.global.search.GlobalSearchTextCriteria",
+        //     contains: "Label",
+        // },
+    };
+    rpcQuery("searchSamples", [ token, searchCriteria, fetchOptions ],
+    function(result) {
+        console.dir(result);
+        if (result.objects) {
+            // Process the results
+            result.objects.forEach(obj => {
+                //console.dir(obj);
+                if (!obj.properties || !obj.code) {
+                    console.log(`No properties in ${obj}`)
+                    return;
+                }
+                const name = obj.code + ": " + obj.properties["$NAME"].trim().replace(/^Label +/, "");
+                spreadsheet = obj.properties["EXPERIMENTAL_STEP.SPREADSHEET"];
+                // Step 1: Extract the Base64 string using a regular expression
+                const match = spreadsheet.match(/<DATA>(.*?)<\/DATA>/);
+                const encodedString = match ? match[1] : null; // Get the captured group
+                // Step 2: Decode the Base64 string if it exists
+                if (!encodedString) {
+                    console.log("No valid Spreadsheet data found.");
+                    return;
+                }
+                const decodedString = atob(encodedString);
+                spreadsheet = JSON.parse(decodedString);
+                //console.log(spreadsheet);
+                var layout = {}; //{"name": name};
+                spreadsheet.values.forEach(row => {
+                    //console.log(row.length, row[0], row[1]);
+                    assignValue(layout, row);
+                    //console.log(layout);
+                });
+                pageLayouts[name] = layout;
+            });
+        } else {
+            console.error('No results found or error in response:', result);
+        }
+        console.log(pageLayouts)
+        // Populate the dropdown dynamically
+        Object.keys(pageLayouts).forEach(function(layoutName) {
+            $('#layout-select').append(new Option(layoutName, layoutName));
+        });
     });
 }
 
@@ -349,91 +468,24 @@ $(document).ready(function() {
         getSamples();
     });
     $('#devtest-button').click(function() {
-        const objectType = 'EXPERIMENTAL_STEP';
-        const objectName = 'Label format';
-        fetchOptions = {
-            "@type": "as.dto.global.fetchoptions.GlobalSearchObjectFetchOptions",
-            sample: {
-                "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
-                type: {
-                    "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
-                }
-            },
-            properties: {
-                "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
-            },
-        };
-        searchCriteria = {
-            "@type": "as.dto.global.search.GlobalSearchCriteria",
-            // objectKind: {
-            //     "@type": "as.dto.global.search.GlobalSearchObjectKindCriteria",
-            //     value: "SAMPLE",
-            // },
-            // text: {
-            //     "@type": "as.dto.global.search.GlobalSearchTextCriteria",
-            //     contains: "Label",
-            // },
-        };
-        fetchOptions2 = {
-            "@type": "as.dto.sample.fetchoptions.SampleFetchOptions",
-            type: {
-                "@type": "as.dto.sample.fetchoptions.SampleTypeFetchOptions",
-            },
-            properties: {
-                "@type": "as.dto.property.fetchoptions.PropertyFetchOptions",
-            },
-        };
-        searchCriteria2 = {
-            "@type": "as.dto.sample.search.SampleSearchCriteria",
-            "criteria": [
-                    {
-                    "fieldName": "code",
-                    "fieldType": "ATTRIBUTE",
-                    "fieldValue": {
-                        "value": "EXP",
-                        "@type": "as.dto.common.search.StringStartsWithValue"
-                    },
-                    "useWildcards": false,
-                    "@type": "as.dto.common.search.CodeSearchCriteria"
-                    },
-                    {
-                    "fieldName": "$NAME",
-                    "fieldType": "PROPERTY",
-                    "fieldValue": {
-                        "value": "Label",
-                        "@type": "as.dto.common.search.StringStartsWithValue"
-                    },
-                    "useWildcards": false,
-                    "@type": "as.dto.common.search.StringPropertySearchCriteria"
-                    },
-            ],
-            "relation": "SAMPLE",
-            "operator": "AND",
-            // type: {
-            //     "@type": "as.dto.sample.search.SampleTypeSearchCriteria",
-            //     value: "EXPERIMENTAL_STEP.MEASUREMENT_SESSION",
-            // },
-            // text: {
-            //     "@type": "as.dto.global.search.GlobalSearchTextCriteria",
-            //     contains: "Label",
-            // },
-        };
-        rpcQuery("searchSamples", [ token, searchCriteria2, fetchOptions2 ],
-        function(result) {
-            console.log(`result: '${result}'`);
-            console.dir(result);
-            if (result.objects) {
-                // Process the results
-                result.objects.forEach(object => {
-                    console.dir(obj);
-                    // console.log(`Object ID: ${object.id}, Name: ${object.name}`);
-                });
-            } else {
-                console.error('No results found or error in response:', result);
-            }
-        });
+        getLayouts();
+    });
+    // Event listener for layout selection change
+    $('#layout-select').change(function() {
+        selectedLayout = $(this).val(); // Get the selected value
+        console.log('You selected: ' + selectedLayout);
+        if (selectedLayout.length && selectedLayout in pageLayouts) {
+            console.log(pageLayouts[selectedLayout]);
+        }
     });
     checkAuth();
+    $('#inputfield').text(
+    "/6.5_PROJECTS/BAM_N008_REFERENCE_MATERIALS/SAM6782 "+
+    "/6.5_PROJECTS/BAM_N008_REFERENCE_MATERIALS/SAM6783 "+
+    "/6.5_PROJECTS/BAM_GLASSY_CARBON_REFERENCE_MATERIALS/SAM5985 "
+    );
+    getLayouts();
+    $('#devtest-button').hide();
 });
 </script>
 </head>
@@ -467,6 +519,11 @@ This web interface generates QR labels for samples from the <a href="{{siteURL}}
 <textarea id="inputfield" tabindex="1"></textarea>
 <div id="button-group">
     <button id="logout-button" tabindex="3">Logout</button>
+    <span class="spacer"></span>
+    Pick a Layout:
+    <select id="layout-select">
+        <option value="">--Select a layout--</option>
+    </select>
     <span class="spacer"></span>
     <button id="query-button" tabindex="2">Generate</button>
     <span class="spacer"></span>
