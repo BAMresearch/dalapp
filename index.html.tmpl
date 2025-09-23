@@ -41,7 +41,14 @@ a { text-decoration: none; color: darkblue; }
     table-layout: fixed;
 }
 .outer-table > tbody > tr > td {
-    overflow: hidden;
+    overflow: hidden;         /* Hides overflow content */
+    white-space: nowrap;      /* Prevents text from wrapping */
+    text-overflow: ellipsis;  /* Adds ellipsis for cropped text */
+}
+.outer-table > tbody > tr > td table td {
+    overflow: hidden;         /* Hides overflow content */
+    white-space: nowrap;      /* Prevents text from wrapping */
+    text-overflow: ellipsis;  /* Adds ellipsis for cropped text */
 }
 </style>
 <script>
@@ -283,6 +290,8 @@ function makeOuterTable(layout, cellLayout, samplesRequested, pageIdx, data)
     $(".outer-table > tbody > tr > td").css({
         "height": mm(layout.labelSizeMM.height),
         "width": mm(layout.labelSizeMM.width),
+        "max-height": mm(layout.labelSizeMM.height),
+        "max-width": mm(layout.labelSizeMM.width),
         "padding-left": mm(layout.labelSizeMM.spacingH/2),
         "padding-right": mm(layout.labelSizeMM.spacingH/2)});
     const layoutWidthMM = layout.grid.columns*(layout.labelSizeMM.width+layout.labelSizeMM.spacingH)-layout.labelSizeMM.spacingH;
