@@ -31,4 +31,4 @@ This needs to run the proxy app to allow you to authenticate against the OpenBIS
 
 ## Current State Screenshot
 
-![Current State Screenshot](./img/current_state.png)
+![Current State Screenshot](./img/screenshot.png)
