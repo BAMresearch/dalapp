@@ -31,9 +31,10 @@ This needs to run the proxy app to allow you to authenticate against the OpenBIS
 
 ## Feedback & Collaboration
 
-Please use the [Issues Section](/issues) for feedback and problems.
-This is very open for collaboration, please consider submitting [a pull request](/pulls) :)
+Please use the [Issues Section](https://github.com/BAMresearch/dalapp/issues) for feedback and problems.
+This is very open for collaboration, please consider submitting [a pull request](https://github.com/BAMresearch/dalapp/pulls) :)
 
 ## Current State Screenshot
 
 ![Current State Screenshot](./docs/screenshot.png)
+
