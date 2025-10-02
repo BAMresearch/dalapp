@@ -3,7 +3,7 @@
 Work in progress ;) This shall be, one day: 
 
 - A web interface (or DataStore extension) for batch generation of labels with QR codes for samples
-- Extend QR code generation by additional info & formats (for tiny, normal and big bottles), very related to the solution of Çağtays group: [qrcodes.pdf](https://bambund.sharepoint.com/:b:/s/DataStoreCommunication-SupportFB9.3/EfBxRNY9YZ5NlFAXkgr0bJUBzU5lTsMjSZL8PoIYKq6HZA?e=wyMQgo)
+- Extend QR code generation by additional info & formats (for tiny, normal and big bottles)
 - Allow custom label layout, predefined layouts allow for standardization as well 
 - Key features:
     - web interface, accessibility on each PC with DataStore access, no installation of anything
@@ -12,8 +12,8 @@ Work in progress ;) This shall be, one day:
     - Select multiple sample objects quickly, e.g. in a DataStore listing
     - Technical thoughts:
         - Javascript should be suitable for this, as it can be used by any employee in the webbrowser and requires no additional hardware or setup.
-        
-Open for collaboration!
+
+[There is a short presentation about this app held on the OpenBIS User Group Meeting 2025 at BAM.](docs/250923%20Datastore%20Advanced%20Label%20App%20Demo%20-%20OpenBIS%20UGM%202025.pdf)
 
 ## Usage
 
@@ -29,6 +29,11 @@ This uploads the App (self-contained HTML with Javascript and images embedded) t
 
 This needs to run the proxy app to allow you to authenticate against the OpenBIS server and use its API. For this, set `uploadNoProxy: false` in `config.json`.
 
+## Feedback & Collaboration
+
+Please use the [Issues Section](/issues) for feedback and problems.
+This is very open for collaboration, please consider submitting [a pull request](/pulls) :)
+
 ## Current State Screenshot
 
-![Current State Screenshot](./img/screenshot.png)
+![Current State Screenshot](./docs/screenshot.png)
